@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { parseXml } from "@/utils/xmlParser";
-import { Entry } from "@/utils/types";
+import { SearchedPaperDetails } from "@/utils/types";
 import axios from "axios";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Entry[]>([]);
+  const [results, setResults] = useState<SearchedPaperDetails[]>([]);
 
   async function getPapers() {
     setLoading(true);

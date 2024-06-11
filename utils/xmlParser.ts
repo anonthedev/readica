@@ -1,11 +1,11 @@
-import { Entry } from "@/utils/types";
+import { SearchedPaperDetails } from "@/utils/types";
 
-export const parseXml = (xmlString: string): Entry[] => {
+export const parseXml = (xmlString: string): SearchedPaperDetails[] => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlString, "application/xml");
 
   const entries = xmlDoc.getElementsByTagName("entry");
-  const result: Entry[] = [];
+  const result: SearchedPaperDetails[] = [];
 
   function formatDate(stringDate: string) {
     const date = new Date(stringDate);

@@ -1,4 +1,4 @@
-export interface Entry {
+export interface SearchedPaperDetails {
     id: string;
     updated: string;
     published: string;
