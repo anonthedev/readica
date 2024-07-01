@@ -18,18 +18,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAuth } from "@clerk/nextjs";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchedPaperDetails[]>([]);
   const [file, setFile] = useState<File | null>(null);
-  // const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const [paperTitle, setPaperTitle] = useState("");
+  const [token, setToken] = useState();
 
+  const { getToken, userId } = useAuth();
   const [mounted, setMounted] = useState(false);
 
+  // async function fetchToken(){
+  //   const tempToken = 
+  //   return tempToken
+  // }
+
   useEffect(() => {
-    setMounted(true);
+    const temp = async ()=>{
+      const tempToken = await getToken({template: "supabase"})
+      console.log(tempToken)
+      setToken(tempToken)
+    }
+
+    temp()
   }, []);
 
   async function getPapers() {
@@ -48,12 +62,12 @@ export default function Home() {
   }
 
   async function handleFileUpload(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
       try {
-        const response = await fetch("/api/uploadPDF", {
+        const response = await fetch(`/api/uploadPDF?token=${token}`, {
           method: "POST",
           body: formData,
         });
@@ -109,13 +123,14 @@ export default function Home() {
             <DialogTrigger className="bg-gradient-to-b from-[#F8FAFC] to-[#949596] rounded-md px-4 py-2 text-black border-none">
               Open
             </DialogTrigger>
-            <DialogContent className="flex flex-col items-center justify-center text-center">
+            <DialogContent className="flex flex-col items-center justify-center text-center gap-5">
               <DialogHeader>
                 <DialogTitle>Upload the PDF research paper.</DialogTitle>
               </DialogHeader>
               <DialogDescription>
                 <form
                   onSubmit={handleFileUpload}
+                  className="flex flex-col gap-3 items-center justify-center"
                 >
                   <Input
                     id="pdf"
@@ -124,10 +139,15 @@ export default function Home() {
                     onChange={(e) => {
                       console.log(e);
                       setFile(e.target.files![0]);
-                      // uploadFile(e.target.files![0], e.target.value);
                     }}
                   />
-                  <Button type="submit">Upload PDF</Button>
+                  <Input
+                    placeholder="Enter the title of the paper"
+                    onChange={(e) => setPaperTitle(e.target.value)}
+                  />
+                  <Button type="submit" className="w-fit">
+                    Upload PDF
+                  </Button>
                 </form>
               </DialogDescription>
             </DialogContent>
