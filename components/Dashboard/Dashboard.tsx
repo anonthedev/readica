@@ -1,156 +1,70 @@
 "use client";
 
-import { arxivSearch } from "@/utils/paperSearchFuntions";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { SearchedPaperDetails, LibraryItem } from "@/utils/types";
-import { Ellipsis } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import axios from "axios";
-import { useSearchParams, useRouter } from "next/navigation";
+import { LibraryItem } from "@/utils/types";
+import { useToast } from "@/components/ui/use-toast";
+import Search from "../Search";
+import { getLib } from "@/utils/supabaseFunctions";
 
 export default function Dashboard() {
-  // const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<SearchedPaperDetails[]>([]);
   const [library, setLibrary] = useState<LibraryItem[]>();
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   const { getToken, userId } = useAuth();
-
-  const query = searchParams.get("q") || "";
+  const { toast } = useToast();
 
   useEffect(() => {
-    getLib();
+    getLibrary();
   }, []);
 
-  async function handleSearch(e: React.FormEvent) {
-    if (query.length > 2) {
-      e.preventDefault();
-      setLoading(true);
-      try {
-        const result = await arxivSearch(query);
-        setResults(result.data);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setLoading(false);
-      }
+  async function getLibrary() {
+    const token = await getToken();
+    const resp = await getLib(token!, userId!);
+    if (resp.success) {
+      console.log(resp.data)
+      setLibrary(resp.data);
+    } else {
+      toast({ title: "Couldn't fetch library", description: resp.message});
     }
   }
 
-  async function getLib() {
-    const token = await getToken({ template: "supabase" });
-    await axios
-      .get(`/api/library?userId=${userId}&token=${token}`)
-      .then((resp) => {
-        console.log(resp.data);
-        setLibrary(resp.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  async function addToLib(paperDetails: SearchedPaperDetails) {
-    const token = await getToken({ template: "supabase" });
-    await axios.post(`/api/library?userId=${userId}`, {
-      token: token,
-      title: paperDetails.title,
-      description: paperDetails.summary,
-      authors: paperDetails.authors,
-      pdf_link: paperDetails.pdfLink,
-    });
-  }
-
   return (
-    <div>
-      <form
-        onSubmit={handleSearch}
-        className="w-full flex flex-row gap-2 items-center justify-center md:flex-col"
-      >
-        <Input
-          className="w-1/2 md:w-2/3"
-          placeholder="Search for research papers (type atleast 3 letters)"
-          value={query}
-          onChange={(e) => {
-            if (e.target.value.length > 0) {
-              router.push(`?q=${encodeURIComponent(e.target.value)}`);
-            }
-          }}
-        />
-        <Button
-          variant="default"
-          type="submit"
-          disabled={loading}
-          className="bg-gradient-to-b from-[#F8FAFC] to-[#949596]"
-        >
-          Search
-        </Button>
-      </form>
-      <div className="max-w-prose flex flex-col gap-4 px-5">
-        {results.length !== 0 &&
-          results.map((entry, index) => (
-            <div className="flex flex-row gap-2 items-start">
-              <a href={entry.pdfLink} target="_blank" key={index}>
-                <h2 className="font-bold">{entry.title}</h2>
-                <p className="text-sm">
-                  {entry.summary.length > 120
-                    ? entry.summary.slice(0, 120) + "..."
-                    : entry.summary}
-                </p>
-                <p>
-                  <strong>Authors:</strong> {entry.authors.join(", ")}
-                </p>
-                <p>
-                  <strong>Published:</strong> {entry.published}
-                </p>
-                <p>
-                  <strong>Updated:</strong> {entry.updated}
-                </p>
-              </a>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <Ellipsis />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Options</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      addToLib(entry);
-                    }}
+    <main className="mx-20 my-10">
+      <Search />
+      <section className="mt-8 flex flex-row justify-between w-full">
+        <article className="flex flex-col gap-5">
+          <h1 className="text-3xl font-bold">My Library</h1>
+          <div className="w-full grid grid-cols-2 items-center justify-between gap-8">
+            {library &&
+              library.length > 0 &&
+              library.map((item) => (
+                <a
+                  target="_blank"
+                  href={item.pdf_link}
+                  key={item.pdf_link}
+                  className="flex flex-col gap-2 w-fit"
+                >
+                  <h2 className="font-semibold text-lg max-w-[50ch]">
+                    {item.title}
+                  </h2>
+                  <p
+                    className="font-medium text-sm max-w-prose text-ellipsis"
+                    title={item.description}
                   >
-                    Add to my library
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ))}
-      </div>
-
-      <div>
-        {library &&
-          library.length > 0 &&
-          library.map((item) => (
-            <div key={item.pdf_link}>
-              <h2>{item.title}</h2>
-              <p>{item.authors.join(", ")}</p>
-            </div>
-          ))}
-      </div>
-    </div>
+                    {item.description?.length! < 220
+                      ? item.description
+                      : item.description?.slice(0, 220) + "..."}
+                  </p>
+                  <p className="max-w-prose text-ellipsis text-gray-400">
+                    {item.authors.join(", ")}
+                  </p>
+                </a>
+              ))}
+          </div>
+        </article>
+        {/* <UserInfo  /> */}
+      </section>
+    </main>
   );
 }

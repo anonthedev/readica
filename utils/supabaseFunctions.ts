@@ -1,19 +1,67 @@
-// import { supabaseClient } from "@/lib/supabase";
-// import { useAuth } from "@clerk/nextjs";
+import axios from "axios";
+import { SearchedPaperDetails } from "./types";
 
-// const { getToken, userId } = useAuth();
-// const token = await getToken({ template: "supabase" });
-// const supabase = await supabaseClient(token!);
+export async function addToLib(
+  paperDetails: SearchedPaperDetails,
+  token: string,
+  userId: string
+) {
+  try {
+    const response = await axios.post(`/api/library?userId=${userId}`, {
+      token: token,
+      title: paperDetails.title,
+      description: paperDetails.summary,
+      authors: paperDetails.authors,
+      pdf_link: paperDetails.pdfLink,
+    });
 
-// export async function uploadFile(file: File, filePath: string) {
-//   const { data, error } = await supabase.storage
-//     .from("papers")
-//     .upload(filePath, file);
-//   if (error) {
-//     console.log(error);
-//     return { status: "error", error: error };
-//   } else {
-//     console.log(data);
-//     return { status: "success", data: data };
-//   }
-// }
+    if (!response.data.message) {
+      return { success: true, data: response.data };
+    } else {
+      if (response.data.code === "23505") {
+        return {
+          success: false,
+          error: "Paper is already in your library",
+          code: "23505",
+        };
+      } else {
+        return {
+          success: false,
+          error: "Couldn't add paper to your library",
+          message: response.data.message,
+        };
+      }
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: "Something went wrong",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+export async function getLib(token: string, userId: string) {
+    try {
+      const resp = await axios.get(`/api/library?userId=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      return { success: true, data: resp.data };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          error: error.response.data.message || "An error occurred",
+          statusCode: error.response.status
+        };
+      }
+      return {
+        success: false,
+        error: "Something went wrong",
+        message: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }

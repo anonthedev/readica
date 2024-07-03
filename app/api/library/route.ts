@@ -24,30 +24,44 @@ export async function POST(req: NextRequest, res: NextResponse) {
     .select();
 
   if (data) {
-    console.log(data);
+    return NextResponse.json(data);
   } else {
     console.log(error);
+    return NextResponse.json(error);
   }
-  return NextResponse.json(data);
 }
 
-export async function GET(req: NextRequest, res: NextResponse) {
-  const userId = req.nextUrl.searchParams.get("userId")!;
-  const token = req.nextUrl.searchParams.get("token")!;
+export async function GET(req: NextRequest) {
+  try {
+    const userId = req.nextUrl.searchParams.get("userId");
+    const authHeader = req.headers.get("Authorization");
 
-  const supabase = await supabaseClient(token);
+    if (!userId || !authHeader) {
+      return NextResponse.json({ message: "Missing userId or token" }, { status: 400 });
+    }
 
-  let { data: library, error } = await supabase
-    .from("library")
-    .select("*")
-    .eq("user_id", userId);
+    const token = authHeader.split(" ")[1];
+    const supabase = await supabaseClient(token);
 
-  console.log(library);
-  console.log(error);
+    let { data: library, error } = await supabase
+      .from("library")
+      .select("*")
+      .eq("user_id", userId);
   
-  if (library) {
+    if (error) {
+      throw error;
+    }
+
+    if (!library || !Array.isArray(library)) {
+      return NextResponse.json({ message: "No library data found" }, { status: 404 });
+    }
+
     return NextResponse.json(library);
-  } else {
-    NextResponse.json(error);
+  } catch (error) {
+    console.error('Error in GET /api/library:', error);
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
