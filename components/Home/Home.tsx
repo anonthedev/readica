@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { parseXml } from "@/utils/xmlParser";
 import { SearchedPaperDetails } from "@/utils/types";
 import axios from "axios";
-import { uploadFile } from "@/utils/supabaseFunctions";
+// import { uploadFile } from "@/utils/supabaseFunctions";
 import leftBg from "@/resources/images/left-bg.png";
 import rightBg from "@/resources/images/right-bg.png";
 import {
@@ -32,19 +32,19 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
 
   // async function fetchToken(){
-  //   const tempToken = 
+  //   const tempToken =
   //   return tempToken
   // }
 
-  useEffect(() => {
-    const temp = async ()=>{
-      const tempToken = await getToken({template: "supabase"})
-      console.log(tempToken)
-      setToken(tempToken)
-    }
+  // useEffect(() => {
+  //   const temp = async ()=>{
+  //     const tempToken = await getToken({template: "supabase"})
+  //     console.log(tempToken)
+  //     setToken(tempToken)
+  //   }
 
-    temp()
-  }, []);
+  //   temp()
+  // }, []);
 
   async function getPapers() {
     setLoading(true);
@@ -61,28 +61,28 @@ export default function Home() {
       });
   }
 
-  async function handleFileUpload(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-      try {
-        const response = await fetch(`/api/uploadPDF?token=${token}`, {
-          method: "POST",
-          body: formData,
-        });
+  // async function handleFileUpload(e: React.FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
+  //   if (file) {
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     try {
+  //       const response = await fetch(`/api/pdf?token=${token}`, {
+  //         method: "POST",
+  //         body: formData,
+  //       });
 
-        if (response.ok) {
-          alert("File uploaded successfully");
-        } else {
-          alert("File upload failed");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("File upload failed");
-      }
-    }
-  }
+  //       if (response.ok) {
+  //         alert("File uploaded successfully");
+  //       } else {
+  //         alert("File upload failed");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //       alert("File upload failed");
+  //     }
+  //   }
+  // }
 
   return (
     <main className="w-screen min-h-dvh flex flex-row items-center justify-between">
@@ -97,7 +97,7 @@ export default function Home() {
             and even take notes, all at your fingertips!
           </p>
         </div>
-        <div
+        <form
           onSubmit={(e) => {
             e.preventDefault();
             getPapers();
@@ -109,6 +109,14 @@ export default function Home() {
             placeholder="Search for research papers"
             onChange={(e) => setQuery(e.target.value)}
           />
+          <Button
+            variant="default"
+            type="submit"
+            disabled={loading}
+            className="bg-gradient-to-b from-[#F8FAFC] to-[#949596]"
+          >
+            Search
+          </Button>
           {/* <div className="grid w-full max-w-sm items-center gap-1.5">
             <Input
               id="pdf"
@@ -119,7 +127,7 @@ export default function Home() {
               }}
             />
           </div> */}
-          <Dialog>
+          {/* <Dialog>
             <DialogTrigger className="bg-gradient-to-b from-[#F8FAFC] to-[#949596] rounded-md px-4 py-2 text-black border-none">
               Open
             </DialogTrigger>
@@ -151,17 +159,8 @@ export default function Home() {
                 </form>
               </DialogDescription>
             </DialogContent>
-          </Dialog>
-
-          {/* <Button
-            variant="default"
-            // type="submit"
-            // disabled={loading}
-            className="bg-gradient-to-b from-[#F8FAFC] to-[#949596]"
-          >
-            Upload PDF
-          </Button> */}
-        </div>
+          </Dialog> */}
+        </form>
         <div className="max-w-prose flex flex-col gap-4 px-5">
           {results.length !== 0 &&
             results.map((entry, index) => (

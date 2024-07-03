@@ -8,4 +8,15 @@ export interface SearchedPaperDetails {
     pdfLink: string;
     primaryCategory: string;
     categories: string[];
-  }
+}
+
+export interface LibraryItem{
+  user_id: string;
+  email: string;
+  title: string;
+  description?: string;
+  authors: string[];
+  status?: string;
+  pdf_link: string;
+  tags?: string[];
+}
