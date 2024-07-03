@@ -100,7 +100,7 @@ export default function Search() {
           disabled={loading}
           className="bg-gradient-to-b from-[#F8FAFC] to-[#949596]"
         >
-          Search
+          {loading ? "Searching..." : "Search"}
         </Button>
       </form>
       <div className="mt-8 flex flex-col gap-4">
