@@ -11,6 +11,7 @@ export interface SearchedPaperDetails {
 }
 
 export interface LibraryItem{
+  uuid: string;
   user_id: string;
   email: string;
   title: string;

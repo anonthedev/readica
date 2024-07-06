@@ -1,3 +1,5 @@
+"use client"
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Ellipsis, ChevronDown } from "lucide-react";
@@ -10,8 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "@/components/ui/use-toast";
 import { SearchedPaperDetails } from "@/utils/types";
@@ -22,10 +24,17 @@ export default function Search() {
   const [results, setResults] = useState<SearchedPaperDetails[]>([]);
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const [collapseSearchResults, setCollapseSearchResults] = useState(false);
+  const [addingPaper, setAddingPaper] = useState(false);
+
   const searchParams = useSearchParams();
+  const params = useParams()
   const query = searchParams.get("q") || "";
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
+
+  console.log(pathname)
+  console.log(params)
 
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
@@ -33,6 +42,18 @@ export default function Search() {
   useMemo(() => {
     handleSearch();
   }, [query]);
+
+  useEffect(()=>{
+    if (query.length > 0) {
+      setTempSearchQuery(query);
+    }
+  }, [])
+
+  useEffect(()=>{
+    if (tempSearchQuery.length === 0) {
+      router.push(pathname)
+    }
+  }, [tempSearchQuery])
 
   async function handleSearch() {
     if (query.length > 2) {
@@ -49,19 +70,22 @@ export default function Search() {
   }
 
   async function handleAddToLib(paperDetails: SearchedPaperDetails) {
+    toast({ title: "🔘 Adding..." });
     const token = await getToken({ template: "supabase" });
     if (!token || !userId) {
-      toast({ title: "Please login/signup first" });
+      toast({ title: "❌ Please login/signup first" });
       return;
     }
 
     const result = await addToLib(paperDetails, token, userId);
 
     if (result.success) {
-      toast({ title: "Paper added to library successfully" });
+      setAddingPaper(false)
+      toast({ title: "✅ Paper added to library successfully" });
     } else {
+      setAddingPaper(false)
       if (result.code === "23505") {
-        toast({ title: "Paper is already in your library" });
+        toast({ title: "❌ Paper is already in your library" });
       } else {
         toast({
           title: "Something went wrong",
@@ -80,7 +104,7 @@ export default function Search() {
         className="w-full flex flex-row gap-2 items-center justify-center md:flex-col"
       >
         <Input
-          className="w-1/2 md:w-2/3"
+          className="w-1/2 md:w-full"
           placeholder="Search for research papers (type atleast 3 letters)"
           value={tempSearchQuery}
           onChange={(e) => {
@@ -124,7 +148,7 @@ export default function Search() {
           </div>
         )}
         <div
-          className={`w-full grid-cols-2 gap-5 items-center justify-center ${
+          className={`w-full grid-cols-2 gap-5 items-center justify-center lg:grid-cols-1 ${
             collapseSearchResults ? "hidden" : "grid"
           }`}
         >
@@ -153,8 +177,6 @@ export default function Search() {
                     <Ellipsis />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuLabel>Options</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={async () => {
                         handleAddToLib(entry)
