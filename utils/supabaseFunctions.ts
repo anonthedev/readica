@@ -96,7 +96,7 @@ export async function deleteFromLib(
     } else {
       return {
         success: false,
-        error: "Couldn't add paper to your library",
+        error: "Something went wrong",
         message: resp.data.message,
       };
     }
@@ -136,7 +136,15 @@ export async function updateLib(
     );
     console.log(resp.data);
 
-    return { success: true, data: resp.data };
+    if (!resp.data.message) {
+      return { success: true, data: resp.data };
+    } else {
+      return {
+        success: false,
+        error: "Something went wrong",
+        message: resp.data.message,
+      };
+    }
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       return {

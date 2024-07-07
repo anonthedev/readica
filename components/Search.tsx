@@ -13,18 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "@/components/ui/use-toast";
 import { SearchedPaperDetails } from "@/utils/types";
 import { arxivSearch } from "@/utils/paperSearchFuntions";
-import { addToLib } from "@/utils/supabaseFunctions";
+import { addToLib, getLib } from "@/utils/supabaseFunctions";
+import { libraryContext } from "@/components/Dashboard/Dashboard";
 
 export default function Search() {
   const [results, setResults] = useState<SearchedPaperDetails[]>([]);
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const [collapseSearchResults, setCollapseSearchResults] = useState(false);
-  const [addingPaper, setAddingPaper] = useState(false);
 
   const searchParams = useSearchParams();
   const params = useParams()
@@ -33,11 +33,10 @@ export default function Search() {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
 
-  console.log(pathname)
-  console.log(params)
-
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
+
+  const {library, setLibrary} = useContext(libraryContext);
 
   useMemo(() => {
     handleSearch();
@@ -69,6 +68,22 @@ export default function Search() {
     }
   }
 
+  async function getLibrary() {
+    const token = await getToken({ template: "supabase" });
+    if (!token || !userId) {
+      toast({ title: "Please login/signup first" });
+      return;
+    } else {
+      const resp = await getLib(token, userId);
+      if (resp.success) {
+        console.log(resp.data);
+        setLibrary(resp.data);
+      } else {
+        toast({ title: "Couldn't fetch library", description: resp.message });
+      }
+    }
+  }
+
   async function handleAddToLib(paperDetails: SearchedPaperDetails) {
     toast({ title: "🔘 Adding..." });
     const token = await getToken({ template: "supabase" });
@@ -80,10 +95,9 @@ export default function Search() {
     const result = await addToLib(paperDetails, token, userId);
 
     if (result.success) {
-      setAddingPaper(false)
       toast({ title: "✅ Paper added to library successfully" });
+      getLibrary()
     } else {
-      setAddingPaper(false)
       if (result.code === "23505") {
         toast({ title: "❌ Paper is already in your library" });
       } else {
