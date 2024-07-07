@@ -119,6 +119,9 @@ export default function Search() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (tempSearchQuery !== "") {
+            router.push(`?q=${tempSearchQuery}`);
+          }
         }}
         className="w-full flex flex-row gap-2 items-center justify-center md:flex-col"
       >
