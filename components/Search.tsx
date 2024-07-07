@@ -135,7 +135,7 @@ export default function Search() {
       >
         <Input
           className="w-1/2 md:w-full"
-          placeholder="Search for research papers (type atleast 3 letters)"
+          placeholder="Search by keywords or Put in an arxiv paper URL"
           value={tempSearchQuery}
           onChange={(e) => {
             setTempSearchQuery(e.target.value);
