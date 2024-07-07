@@ -11,9 +11,9 @@ export default function Home() {
 
   return (
     <main
-      className={`w-screen min-h-[calc(100vh-80px)] flex flex-row items-center justify-between`}
+      className={`w-screen min-h-[calc(100vh-80px)] flex flex-row items-center justify-between md:px-8`}
     >
-      <img src={leftBg.src} alt="" className="h-full w-fit" />
+      <img src={leftBg.src} alt="" className="h-full w-fit md:hidden" />
       <section className="flex flex-col items-center justify-center gap-10 w-full">
         <div className="flex flex-col gap-4 max-w-prose text-center items-center justify-center">
           <h1 className="text-3xl font-bold">
@@ -41,7 +41,7 @@ export default function Home() {
           )}
         </div>
       </section>
-      <img src={rightBg.src} alt="" className="h-full w-fit" />
+      <img src={rightBg.src} alt="" className="h-full w-fit md:hidden" />
     </main>
   );
 }
