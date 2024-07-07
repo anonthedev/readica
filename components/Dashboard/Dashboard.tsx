@@ -251,6 +251,10 @@ export default function Dashboard() {
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                        >
+                          <a href={item.pdf_link} target="_blank">Go to original source</a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={async () => {
                             toast({ title: "Deleting..." });
                             const token = await getToken({
@@ -273,6 +277,7 @@ export default function Dashboard() {
                         >
                           Delete
                         </DropdownMenuItem>
+                        
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

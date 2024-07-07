@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation";
+import {
+  useSearchParams,
+  useRouter,
+  usePathname,
+  useParams,
+} from "next/navigation";
 import { useEffect, useMemo, useState, useContext } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,7 +32,7 @@ export default function Search() {
   const [collapseSearchResults, setCollapseSearchResults] = useState(false);
 
   const searchParams = useSearchParams();
-  const params = useParams()
+  const params = useParams();
   const query = searchParams.get("q") || "";
   const router = useRouter();
   const pathname = usePathname();
@@ -36,23 +41,23 @@ export default function Search() {
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
 
-  const {library, setLibrary} = useContext(libraryContext);
+  const { setLibrary } = useContext(libraryContext);
 
   useMemo(() => {
     handleSearch();
   }, [query]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (query.length > 0) {
       setTempSearchQuery(query);
     }
-  }, [])
+  }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (tempSearchQuery.length === 0) {
-      router.push(pathname)
+      router.push(pathname);
     }
-  }, [tempSearchQuery])
+  }, [tempSearchQuery]);
 
   async function handleSearch() {
     if (query.length > 2) {
@@ -96,7 +101,7 @@ export default function Search() {
 
     if (result.success) {
       toast({ title: "✅ Paper added to library successfully" });
-      getLibrary()
+      getLibrary();
     } else {
       if (result.code === "23505") {
         toast({ title: "❌ Paper is already in your library" });
@@ -193,7 +198,7 @@ export default function Search() {
                   <DropdownMenuContent>
                     <DropdownMenuItem
                       onClick={async () => {
-                        handleAddToLib(entry)
+                        handleAddToLib(entry);
                       }}
                     >
                       Add to my library
