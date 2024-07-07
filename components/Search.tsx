@@ -132,13 +132,6 @@ export default function Search() {
           onChange={(e) => {
             setTempSearchQuery(e.target.value);
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              if (tempSearchQuery !== "") {
-                router.push(`?q=${tempSearchQuery}`);
-              }
-            }
-          }}
         />
         <Button
           variant="default"
