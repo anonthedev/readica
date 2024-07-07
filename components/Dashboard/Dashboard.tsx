@@ -69,11 +69,10 @@ export default function Dashboard() {
               {library &&
                 library.length > 0 &&
                 library.map((item) => (
-                  <div className="flex flex-row gap-2 items-start">
+                  <div className="flex flex-row gap-2 items-start" key={item.uuid}>
                     <a
                       target="_blank"
                       href={item.pdf_link}
-                      key={item.uuid}
                       className="flex flex-col gap-2 w-fit"
                     >
                       <h2 className="font-semibold text-lg max-w-[50ch]">
