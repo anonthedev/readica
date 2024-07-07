@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   return (
     <libraryContext.Provider value={{ library, setLibrary }}>
-      <main className="mx-20 my-10 md:mx-10">
+      <main className="mx-20 my-10 md:mx-8">
         <Search />
         <section className="mt-8 w-full">
           <article className="flex flex-col gap-5">
