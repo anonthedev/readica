@@ -11,6 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   useSearchParams,
@@ -56,6 +63,7 @@ export default function Search() {
   useEffect(() => {
     if (tempSearchQuery.length === 0) {
       router.push(pathname);
+      setResults([]);
     }
   }, [tempSearchQuery]);
 
@@ -120,7 +128,7 @@ export default function Search() {
         onSubmit={(e) => {
           e.preventDefault();
           if (tempSearchQuery !== "") {
-            router.push(`?q=${tempSearchQuery}`);
+            router.push(`?q=${encodeURIComponent(tempSearchQuery)}`);
           }
         }}
         className="w-full flex flex-row gap-2 items-center justify-center md:flex-col"
@@ -133,6 +141,17 @@ export default function Search() {
             setTempSearchQuery(e.target.value);
           }}
         />
+        {/* <Select>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Theme" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light">Light</SelectItem>
+            <SelectItem value="dark">Dark</SelectItem>
+            <SelectItem value="system">System</SelectItem>
+          </SelectContent>
+        </Select> */}
+
         <Button
           variant="default"
           type="submit"
@@ -169,7 +188,10 @@ export default function Search() {
         >
           {results.length !== 0 &&
             results.map((entry) => (
-              <div className="flex flex-row gap-2 items-start max-w-prose" key={entry.pdfLink}>
+              <div
+                className="flex flex-row gap-2 items-start max-w-prose"
+                key={entry.pdfLink}
+              >
                 <a href={entry.pdfLink} target="_blank">
                   <h2 className="font-bold">{entry.title}</h2>
                   <p className="text-sm">
