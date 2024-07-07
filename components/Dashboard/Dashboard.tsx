@@ -58,6 +58,45 @@ export default function Dashboard() {
     }
   }
 
+  async function setItemStatus(item: LibraryItem) {
+    setUpdatingItem(true);
+    toast({
+      title: "Updating status...",
+    });
+    const token = await getToken({
+      template: "supabase",
+    });
+    if (readingStatus) {
+      updateLib(token!, userId!, item.uuid, {
+        status: readingStatus,
+      })
+        .then((resp) => {
+          if (resp.success) {
+            toast({
+              title: "✅ Status updated successfully",
+            });
+          } else {
+            toast({
+              title: "❌ Something went wrong",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          toast({
+            title: "❌ Something went wrong",
+          });
+        })
+        .finally(() => {
+          setUpdatingItem(false);
+        });
+    } else {
+      toast({
+        title: "Please select a status",
+      });
+    }
+  }
+
   return (
     <libraryContext.Provider value={{ library, setLibrary }}>
       <main className="mx-20 my-10 md:mx-8">
@@ -69,7 +108,10 @@ export default function Dashboard() {
               {library &&
                 library.length > 0 &&
                 library.map((item) => (
-                  <div className="flex flex-row gap-2 items-start" key={item.uuid}>
+                  <div
+                    className="flex flex-row gap-2 items-start"
+                    key={item.uuid}
+                  >
                     <a
                       target="_blank"
                       href={item.pdf_link}
@@ -168,51 +210,8 @@ export default function Dashboard() {
                                     <Button
                                       className="w-fit"
                                       disabled={updatingItem}
-                                      onClick={async () => {
-                                        setUpdatingItem(true);
-                                        toast({
-                                          title: "Updating status...",
-                                        });
-                                        const token = await getToken({
-                                          template: "supabase",
-                                        });
-                                        if (readingStatus) {
-                                          updateLib(
-                                            token!,
-                                            userId!,
-                                            item.uuid,
-                                            {
-                                              status: readingStatus,
-                                            }
-                                          )
-                                            .then((resp) => {
-                                              if (resp.success) {
-                                                toast({
-                                                  title:
-                                                    "✅ Status updated successfully",
-                                                });
-                                              } else {
-                                                toast({
-                                                  title:
-                                                    "❌ Something went wrong",
-                                                });
-                                              }
-                                            })
-                                            .catch((err) => {
-                                              console.log(err);
-                                              toast({
-                                                title:
-                                                  "❌ Something went wrong",
-                                              });
-                                            })
-                                            .finally(() => {
-                                              setUpdatingItem(false);
-                                            });
-                                        } else {
-                                          toast({
-                                            title: "Please select a status",
-                                          });
-                                        }
+                                      onClick={() => {
+                                        setItemStatus(item);
                                       }}
                                     >
                                       {updatingItem ? "Updating..." : "Save"}
@@ -238,20 +237,16 @@ export default function Dashboard() {
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>
-                                  Are you absolutely sure?
+                                  Feature in progress...
                                 </DialogTitle>
-                                <DialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete your account and remove
-                                  your data from our servers.
-                                </DialogDescription>
                               </DialogHeader>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                        >
-                          <a href={item.pdf_link} target="_blank">Go to original source</a>
+                        <DropdownMenuItem>
+                          <a href={item.pdf_link} target="_blank">
+                            Go to original source
+                          </a>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={async () => {
@@ -276,7 +271,6 @@ export default function Dashboard() {
                         >
                           Delete
                         </DropdownMenuItem>
-                        
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
