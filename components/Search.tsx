@@ -172,9 +172,9 @@ export default function Search() {
           }`}
         >
           {results.length !== 0 &&
-            results.map((entry, index) => (
-              <div className="flex flex-row gap-2 items-start max-w-prose">
-                <a href={entry.pdfLink} target="_blank" key={index}>
+            results.map((entry) => (
+              <div className="flex flex-row gap-2 items-start max-w-prose" key={entry.pdfLink}>
+                <a href={entry.pdfLink} target="_blank">
                   <h2 className="font-bold">{entry.title}</h2>
                   <p className="text-sm">
                     {entry.summary.length > 120
