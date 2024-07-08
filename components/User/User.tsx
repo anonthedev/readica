@@ -99,7 +99,7 @@ export default function User({ username }: { username: string }) {
           <article className="flex flex-col gap-5">
             {userDetails && (
               <h1 className="text-3xl font-bold">
-                {userDetails.firstName}'s Library
+                {userDetails.firstName}&apos;s Library
               </h1>
             )}
             <div className="w-full grid grid-cols-2 items-start justify-between gap-8 lg:grid-cols-1">
