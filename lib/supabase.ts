@@ -4,7 +4,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
 
 export async function supabaseClient(supabaseToken: string) {
   const supabase = createClient(supabaseUrl, supabaseKey, {
-    global: { headers: { Authorization: "Bearer " + supabaseToken } },
+    global: {
+      headers: supabaseToken
+        ? { Authorization: `Bearer ${supabaseToken}` }
+        : {},
+    },
   });
   return supabase;
 }

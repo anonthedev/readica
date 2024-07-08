@@ -26,14 +26,14 @@ export const parseXml = (xmlString: string): SearchedPaperDetails[] => {
     );
     const title =
       entry.getElementsByTagName("title")[0]?.textContent || "No title";
-    const summary =
+    const description =
       entry.getElementsByTagName("summary")[0]?.textContent || "No description";
     const authorElements = entry.getElementsByTagName("author");
     const authors = Array.from(authorElements).map(
       (author) =>
         author.getElementsByTagName("name")[0]?.textContent || "No author"
     );
-    const pdfLink =
+    const pdf_link =
       entry.querySelector('link[title="pdf"]')?.getAttribute("href") ||
       "No PDF link";
     const primaryCategory =
@@ -49,9 +49,9 @@ export const parseXml = (xmlString: string): SearchedPaperDetails[] => {
       updated,
       published,
       title,
-      summary,
+      description,
       authors,
-      pdfLink,
+      pdf_link,
       primaryCategory,
       categories,
     });

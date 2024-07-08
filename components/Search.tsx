@@ -7,8 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -190,14 +188,14 @@ export default function Search() {
             results.map((entry) => (
               <div
                 className="flex flex-row gap-2 items-start max-w-prose"
-                key={entry.pdfLink}
+                key={entry.pdf_link}
               >
-                <a href={entry.pdfLink} target="_blank">
+                <a href={entry.pdf_link} target="_blank">
                   <h2 className="font-bold">{entry.title}</h2>
                   <p className="text-sm">
-                    {entry.summary.length > 120
-                      ? entry.summary.slice(0, 120) + "..."
-                      : entry.summary}
+                    {entry.description.length > 120
+                      ? entry.description.slice(0, 120) + "..."
+                      : entry.description}
                   </p>
                   <p>
                     <strong>Authors:</strong> {entry.authors.join(", ")}

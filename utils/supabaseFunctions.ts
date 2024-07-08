@@ -1,9 +1,8 @@
 import axios from "axios";
-import { SearchedPaperDetails } from "./types";
-import { supabaseClient } from "@/lib/supabase";
+import { LibraryItem, SearchedPaperDetails } from "./types";
 
 export async function addToLib(
-  paperDetails: SearchedPaperDetails,
+  paperDetails: SearchedPaperDetails | LibraryItem,
   token: string,
   userId: string
 ) {
@@ -12,9 +11,9 @@ export async function addToLib(
       `/api/library?userId=${userId}`,
       {
         title: paperDetails.title,
-        description: paperDetails.summary,
+        description: paperDetails.description,
         authors: paperDetails.authors,
-        pdf_link: paperDetails.pdfLink,
+        pdf_link: paperDetails.pdf_link,
       },
       {
         headers: {
@@ -50,7 +49,7 @@ export async function addToLib(
   }
 }
 
-export async function getLib(token: string, userId: string) {
+export async function getLib(token: string | undefined, userId: string) {
   try {
     const resp = await axios.get(`/api/library?userId=${userId}`, {
       headers: {

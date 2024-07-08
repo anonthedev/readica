@@ -1,16 +1,16 @@
 export interface SearchedPaperDetails {
-    id: string;
-    updated: string;
-    published: string;
-    title: string;
-    summary: string;
-    authors: string[];
-    pdfLink: string;
-    primaryCategory: string;
-    categories: string[];
+  id: string;
+  updated: string;
+  published: string;
+  title: string;
+  description: string;
+  authors: string[];
+  pdf_link: string;
+  primaryCategory: string;
+  categories: string[];
 }
 
-export interface LibraryItem{
+export interface LibraryItem {
   uuid: string;
   user_id: string;
   email: string;
