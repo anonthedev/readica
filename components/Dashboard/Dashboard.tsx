@@ -7,7 +7,7 @@ import { LibraryItem } from "@/utils/types";
 import { useToast } from "@/components/ui/use-toast";
 import Search from "../Search";
 import { deleteFromLib, getLib, updateLib } from "@/utils/supabaseFunctions";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 export const libraryContext = createContext<any>(null);
 
@@ -33,6 +34,8 @@ export default function Dashboard() {
   >(null);
   const [updatingItem, setUpdatingItem] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tags, setTags] = useState<Set<string>>(new Set([]));
+  const [currentTag, setCurrentTag] = useState("");
 
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
@@ -61,7 +64,7 @@ export default function Dashboard() {
     }
   }
 
-  async function setItemStatus(item: LibraryItem) {
+  async function updateItemStatus(item: LibraryItem) {
     setUpdatingItem(true);
     toast({
       title: "Updating status...",
@@ -80,14 +83,16 @@ export default function Dashboard() {
             });
           } else {
             toast({
-              title: "❌ Something went wrong",
+              title: "Something went wrong",
+              variant: "destructive",
             });
           }
         })
         .catch((err) => {
           console.log(err);
           toast({
-            title: "❌ Something went wrong",
+            title: "Something went wrong",
+            variant: "destructive",
           });
         })
         .finally(() => {
@@ -96,6 +101,49 @@ export default function Dashboard() {
     } else {
       toast({
         title: "Please select a status",
+        variant: "destructive",
+      });
+    }
+  }
+
+  async function updateItemTags(item: LibraryItem) {
+    setUpdatingItem(true);
+    toast({
+      title: "Updating tags...",
+    });
+    const token = await getToken({
+      template: "supabase",
+    });
+    if (tags.size !== 0) {
+      updateLib(token!, userId!, item.uuid, {
+        tags: Array.from(tags),
+      })
+        .then((resp) => {
+          if (resp.success) {
+            toast({
+              title: "✅ Tags updated successfully",
+            });
+          } else {
+            toast({
+              title: "Something went wrong",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          toast({
+            title: "Something went wrong",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setUpdatingItem(false);
+        });
+    } else {
+      toast({
+        title: "Please select a status",
+        variant: "destructive",
       });
     }
   }
@@ -219,7 +267,7 @@ export default function Dashboard() {
                                         className="w-fit"
                                         disabled={updatingItem}
                                         onClick={() => {
-                                          setItemStatus(item);
+                                          updateItemStatus(item);
                                         }}
                                       >
                                         {updatingItem ? "Updating..." : "Save"}
@@ -236,17 +284,74 @@ export default function Dashboard() {
                             <Dialog>
                               <DialogTrigger asChild>
                                 <button
-                                  onClick={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTags(new Set(item.tags));
+                                  }}
                                   className="w-full text-left"
                                 >
                                   Edit Tags
                                 </button>
                               </DialogTrigger>
                               <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Feature in progress...
+                                <DialogHeader className="flex flex-col gap-2">
+                                  <DialogTitle
+                                    title={`Set reading status of ${item.title}`}
+                                  >
+                                    Set reading status of{" "}
+                                    {item.title.length > 20
+                                      ? item.title.slice(0, 20) + "..."
+                                      : item.title}
                                   </DialogTitle>
+                                  <DialogDescription className="flex flex-col gap-2">
+                                    <span className="flex flex-row gap-2">
+                                      {tags &&
+                                        tags.size > 0 &&
+                                        Array.from(tags).map((tag) => (
+                                          <span className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center">
+                                            <p>{tag}</p>
+
+                                            <X
+                                              size={12}
+                                              className="cursor-pointer"
+                                              onClick={() => {
+                                                setTags((prevTags) => {
+                                                  const newTags = new Set(
+                                                    prevTags
+                                                  );
+                                                  newTags.delete(tag);
+                                                  return newTags;
+                                                });
+                                              }}
+                                            />
+                                          </span>
+                                        ))}
+                                    </span>
+                                    <Input
+                                      type="text"
+                                      value={currentTag}
+                                      onChange={(e) => {
+                                        setCurrentTag(e.target.value);
+                                      }}
+                                      onKeyDownCapture={(e) => {
+                                        if (e.key === "Enter") {
+                                          setTags((prevTags) =>
+                                            new Set(prevTags).add(currentTag)
+                                          );
+                                          setCurrentTag("");
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      className="w-fit self-center"
+                                      disabled={updatingItem}
+                                      onClick={() => {
+                                        updateItemTags(item);
+                                      }}
+                                    >
+                                      Save
+                                    </Button>
+                                  </DialogDescription>
                                 </DialogHeader>
                               </DialogContent>
                             </Dialog>
