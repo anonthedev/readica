@@ -48,7 +48,15 @@ export default function Dashboard() {
       const resp = await getLib(token, userId);
       if (resp.success) {
         console.log(resp.data);
-        setLibrary(resp.data);
+        const sortedArr = resp.data.sort(
+          (a: LibraryItemType, b: LibraryItemType) => {
+            const dateA = new Date(a.upload_date);
+            const dateB = new Date(b.upload_date);
+
+            return dateB.getTime() - dateA.getTime();
+          }
+        );
+        setLibrary(sortedArr);
         setLoading(false);
       } else {
         toast({ title: "Couldn't fetch library", description: resp.message });
@@ -210,7 +218,10 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
           {item.tags &&
             item.tags.length !== 0 &&
             item.tags.map((tag) => (
-              <span key={tag} className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center">
+              <span
+                key={tag}
+                className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center"
+              >
                 {tag}
               </span>
             ))}

@@ -13,6 +13,7 @@ export interface SearchedPaperDetails {
 export interface LibraryItemType {
   uuid: string;
   user_id: string;
+  upload_date: string;
   email: string;
   title: string;
   description?: string;
