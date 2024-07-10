@@ -210,7 +210,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
           {item.tags &&
             item.tags.length !== 0 &&
             item.tags.map((tag) => (
-              <span className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center">
+              <span key={tag} className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center">
                 {tag}
               </span>
             ))}
