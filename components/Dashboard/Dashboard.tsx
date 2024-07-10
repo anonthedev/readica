@@ -341,7 +341,6 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                         ))}
                     </span>
                     <Input
-                      className="w-full"
                       type="text"
                       placeholder="Press Enter after typing a tag"
                       value={currentTag}
