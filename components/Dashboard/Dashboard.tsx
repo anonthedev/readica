@@ -68,7 +68,9 @@ export default function Dashboard() {
               <div className="w-full grid grid-cols-2 items-start justify-between gap-8 lg:grid-cols-1">
                 {library &&
                   library.length > 0 &&
-                  library.map((item) => <LibraryItem item={item} />)}
+                  library.map((item) => (
+                    <LibraryItem item={item} key={item.uuid} />
+                  ))}
               </div>
             </article>
           </section>
@@ -128,6 +130,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
         })
         .finally(() => {
           setUpdatingItem(false);
+          getLibrary();
         });
     } else {
       toast({
@@ -170,6 +173,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
         })
         .finally(() => {
           setUpdatingItem(false);
+          getLibrary();
         });
     } else {
       toast({
@@ -194,14 +198,23 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
             ? item.description
             : item.description?.slice(0, 220) + "..."}
         </p>
-        <p className="max-w-prose text-ellipsis text-gray-400">
+        <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
           {item.authors.join(", ")}
         </p>
         {item.status && (
-          <p className="text-sm">
+          <p className="text-xs">
             Status: <span className="text-gray-400">{item.status}</span>
           </p>
         )}
+        <p className="flex flex-row gap-1">
+          {item.tags &&
+            item.tags.length !== 0 &&
+            item.tags.map((tag) => (
+              <span className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center">
+                {tag}
+              </span>
+            ))}
+        </p>
       </a>
       <DropdownMenu>
         <DropdownMenuTrigger className="w-fit">
@@ -283,7 +296,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
             <Dialog>
-              <DialogTrigger asChild onClick={()=>{}}>
+              <DialogTrigger asChild onClick={() => {}}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -294,7 +307,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                   Edit Tags
                 </button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="">
                 <DialogHeader className="flex flex-col gap-2">
                   <DialogTitle title={`Set reading status of ${item.title}`}>
                     Set reading status of{" "}
@@ -303,11 +316,14 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                       : item.title}
                   </DialogTitle>
                   <DialogDescription className="flex flex-col gap-2">
-                    <span className="flex flex-row gap-2">
+                    <span className="flex flex-row gap-2 flex-wrap">
                       {tags &&
                         tags.size > 0 &&
                         Array.from(tags).map((tag) => (
-                          <span className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center">
+                          <span
+                            key={tag}
+                            className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
+                          >
                             <p>{tag}</p>
 
                             <X
@@ -325,10 +341,14 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                         ))}
                     </span>
                     <Input
+                      className="w-full"
                       type="text"
+                      placeholder="Press Enter after typing a tag"
                       value={currentTag}
                       onChange={(e) => {
-                        setCurrentTag(e.target.value);
+                        if (e.target.value.length > 0) {
+                          setCurrentTag(e.target.value);
+                        }
                       }}
                       onKeyDownCapture={(e) => {
                         if (e.key === "Enter") {
