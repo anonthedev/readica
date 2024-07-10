@@ -10,7 +10,7 @@ export interface SearchedPaperDetails {
   categories: string[];
 }
 
-export interface LibraryItem {
+export interface LibraryItemType {
   uuid: string;
   user_id: string;
   email: string;

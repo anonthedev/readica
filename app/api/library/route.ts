@@ -80,10 +80,25 @@ export async function POST(req: NextRequest, res: NextResponse) {
     .select();
 
   if (data) {
-    return NextResponse.json(data);
+    return NextResponse.json({
+      success: true,
+      data,
+    });
   } else {
     console.log(error);
-    return NextResponse.json(error);
+    if (error.code === "23505") {
+      return NextResponse.json({
+        success: false,
+        error: "Paper is already in your library",
+        code: "23505",
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        error: "Couldn't add paper to your library",
+        message: error,
+      });
+    }
   }
 }
 

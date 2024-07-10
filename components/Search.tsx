@@ -30,6 +30,7 @@ import { SearchedPaperDetails } from "@/utils/types";
 import { arxivSearch } from "@/utils/paperSearchFuntions";
 import { addToLib, getLib } from "@/utils/supabaseFunctions";
 import { libraryContext } from "@/components/Dashboard/Dashboard";
+import axios from "axios";
 
 export default function Search() {
   const [results, setResults] = useState<SearchedPaperDetails[]>([]);
@@ -103,18 +104,35 @@ export default function Search() {
       return;
     }
 
-    const result = await addToLib(paperDetails, token, userId);
+    const result = await axios.post(
+      `/api/library?userId=${userId}`,
+      {
+        title: paperDetails.title,
+        description: paperDetails.description,
+        authors: paperDetails.authors,
+        pdf_link: paperDetails.pdf_link,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    if (result.success) {
+    if (result.data.success) {
       toast({ title: "✅ Paper added to library successfully" });
       getLibrary();
     } else {
-      if (result.code === "23505") {
-        toast({ title: "❌ Paper is already in your library" });
+      if (result.data.code === "23505") {
+        toast({
+          title: "Paper is already in your library",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Something went wrong",
-          description: result.message || result.error,
+          description: result.data.message || result.data.error,
         });
       }
     }

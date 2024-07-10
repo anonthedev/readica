@@ -1,4 +1,4 @@
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient } from "@clerk/nextjs/server";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {

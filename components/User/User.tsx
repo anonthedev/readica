@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "../ui/use-toast";
 import { addToLib, getLib } from "@/utils/supabaseFunctions";
 import { useAuth } from "@clerk/nextjs";
-import { LibraryItem } from "@/utils/types";
+import { LibraryItemType } from "@/utils/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import { Ellipsis } from "lucide-react";
 export default function User({ username }: { username: string }) {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<any>(null);
-  const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [library, setLibrary] = useState<LibraryItemType[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { getToken, userId } = useAuth();
@@ -25,7 +25,7 @@ export default function User({ username }: { username: string }) {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`/api/get-user-id-by-username?username=${username}`)
+      .get(`/api/users/get-user-id-by-username?username=${username}`)
       .then((resp) => {
         if (resp.data.success) {
           setProfileUserId(resp.data.user.id);
@@ -59,7 +59,7 @@ export default function User({ username }: { username: string }) {
     }
   }
 
-  async function handleAddToLib(paperDetails: LibraryItem) {
+  async function handleAddToLib(paperDetails: LibraryItemType) {
     toast({ title: "🔘 Adding..." });
     const token = await getToken({ template: "supabase" });
     if (!token || !userId) {

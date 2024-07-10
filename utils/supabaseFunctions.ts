@@ -1,8 +1,8 @@
 import axios from "axios";
-import { LibraryItem, SearchedPaperDetails } from "./types";
+import { LibraryItemType, SearchedPaperDetails } from "./types";
 
 export async function addToLib(
-  paperDetails: SearchedPaperDetails | LibraryItem,
+  paperDetails: SearchedPaperDetails | LibraryItemType,
   token: string,
   userId: string
 ) {
