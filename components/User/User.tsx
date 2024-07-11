@@ -67,12 +67,27 @@ export default function User({ username }: { username: string }) {
       return;
     }
 
-    const result = await addToLib(paperDetails, token, userId);
+    const result = await axios.post(
+      `/api/library?userId=${userId}`,
+      {
+        title: paperDetails.title,
+        description: paperDetails.description,
+        authors: paperDetails.authors,
+        pdf_link: paperDetails.pdf_link,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    if (result.success) {
+    if (result.data.success) {
       toast({ title: "✅ Paper added to library successfully" });
+      getLibrary();
     } else {
-      if (result.code === "23505") {
+      if (result.data.code === "23505") {
         toast({
           title: "Paper is already in your library",
           variant: "destructive",
@@ -80,8 +95,7 @@ export default function User({ username }: { username: string }) {
       } else {
         toast({
           title: "Something went wrong",
-          description: result.message || result.error,
-          variant: "destructive",
+          description: result.data.message || result.data.error,
         });
       }
     }

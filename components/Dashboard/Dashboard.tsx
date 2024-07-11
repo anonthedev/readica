@@ -318,7 +318,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                   Edit Tags
                 </button>
               </DialogTrigger>
-              <DialogContent className="">
+              <DialogContent onKeyDown={(e) => e.stopPropagation()}>
                 <DialogHeader className="flex flex-col gap-2">
                   <DialogTitle title={`Set reading status of ${item.title}`}>
                     Set reading status of{" "}
@@ -356,16 +356,16 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                       placeholder="Press Enter after typing a tag"
                       value={currentTag}
                       onChange={(e) => {
-                        if (e.target.value.length > 0) {
-                          setCurrentTag(e.target.value);
-                        }
+                        setCurrentTag(e.target.value);
                       }}
                       onKeyDownCapture={(e) => {
                         if (e.key === "Enter") {
-                          setTags((prevTags) =>
-                            new Set(prevTags).add(currentTag)
-                          );
-                          setCurrentTag("");
+                          // if (currentTag.length > 0) {
+                            setTags((prevTags) =>
+                              new Set(prevTags).add(currentTag)
+                            );
+                            setCurrentTag("");
+                          // }
                         }
                       }}
                     />
@@ -401,7 +401,10 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                   });
                   getLibrary();
                 } else {
-                  toast({ title: "❌ Something went wrong" });
+                  toast({
+                    title: "Something went wrong",
+                    variant: "destructive",
+                  });
                 }
               });
             }}
