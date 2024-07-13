@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import axios from "axios";
+import Link from "next/link";
 
 export const libraryContext = createContext<any>(null);
 
@@ -45,10 +47,15 @@ export default function Dashboard() {
       toast({ title: "Please login/signup first" });
       setLoading(false);
     } else {
-      const resp = await getLib(token, userId);
-      if (resp.success) {
+      const resp = await axios.get(`/api/library?userId=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (resp.data.success) {
         console.log(resp.data);
-        const sortedArr = resp.data.sort(
+        const sortedArr = resp.data.library.sort(
           (a: LibraryItemType, b: LibraryItemType) => {
             const dateA = new Date(a.upload_date);
             const dateB = new Date(b.upload_date);
@@ -59,7 +66,7 @@ export default function Dashboard() {
         setLibrary(sortedArr);
         setLoading(false);
       } else {
-        toast({ title: "Couldn't fetch library", description: resp.message });
+        toast({ title: "Couldn't fetch library", description: resp.data.message });
         setLoading(false);
       }
     }
@@ -192,9 +199,8 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
   }
   return (
     <div className="flex flex-row gap-2 items-start" key={item.uuid}>
-      <a
-        target="_blank"
-        href={item.pdf_link}
+      <Link
+        href={`/reader/${item.uuid}`}
         className="flex flex-col gap-2 w-fit"
       >
         <h2 className="font-semibold text-lg max-w-[50ch]">{item.title}</h2>
@@ -226,7 +232,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
               </span>
             ))}
         </p>
-      </a>
+      </Link>
       <DropdownMenu>
         <DropdownMenuTrigger className="w-fit">
           <Ellipsis />
@@ -361,10 +367,10 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                       onKeyDownCapture={(e) => {
                         if (e.key === "Enter") {
                           // if (currentTag.length > 0) {
-                            setTags((prevTags) =>
-                              new Set(prevTags).add(currentTag)
-                            );
-                            setCurrentTag("");
+                          setTags((prevTags) =>
+                            new Set(prevTags).add(currentTag)
+                          );
+                          setCurrentTag("");
                           // }
                         }
                       }}

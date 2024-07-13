@@ -27,24 +27,20 @@ export async function GET(req: NextRequest) {
     }
 
     if (!library || !Array.isArray(library)) {
-      return NextResponse.json(
-        { message: "No library data found" },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: false,
+        message: "No library data found",
+      });
     }
 
-    return NextResponse.json(library);
+    return NextResponse.json({ success: true, library });
   } catch (error) {
     console.error("Error in GET /api/library:", error);
-    return NextResponse.json(
-      {
-        message:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      message:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      success: false,
+    });
   }
 }
 

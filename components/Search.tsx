@@ -26,7 +26,7 @@ import {
 import { useEffect, useMemo, useState, useContext } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "@/components/ui/use-toast";
-import { SearchedPaperDetails } from "@/utils/types";
+import { LibraryItemType, SearchedPaperDetails } from "@/utils/types";
 import { arxivSearch } from "@/utils/paperSearchFuntions";
 import { addToLib, getLib } from "@/utils/supabaseFunctions";
 import { libraryContext } from "@/components/Dashboard/Dashboard";
@@ -82,17 +82,29 @@ export default function Search() {
 
   async function getLibrary() {
     const token = await getToken({ template: "supabase" });
-    if (!token || !userId) {
-      toast({ title: "Please login/signup first" });
-      return;
+
+    const resp = await axios.get(`/api/library?userId=${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (resp.data.success) {
+      console.log(resp.data);
+      const sortedArr = resp.data.library.sort(
+        (a: LibraryItemType, b: LibraryItemType) => {
+          const dateA = new Date(a.upload_date);
+          const dateB = new Date(b.upload_date);
+
+          return dateB.getTime() - dateA.getTime();
+        }
+      );
+      setLibrary(sortedArr);
     } else {
-      const resp = await getLib(token, userId);
-      if (resp.success) {
-        console.log(resp.data);
-        setLibrary(resp.data);
-      } else {
-        toast({ title: "Couldn't fetch library", description: resp.message });
-      }
+      toast({
+        title: "Couldn't fetch library",
+        description: resp.data.message,
+      });
     }
   }
 
