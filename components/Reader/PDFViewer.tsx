@@ -68,7 +68,8 @@ export default function PDFViewer({ uuid }: { uuid: string }) {
             if (resp.data.library[0].highlighted_text) {
               setHighlights(() => [...resp.data.library[0].highlighted_text]);
             }
-            setURL(resp.data.library[0].pdf_link);
+            let updatedURL = resp.data.library[0].pdf_link.replace(/^http:/, 'https:');
+            setURL(updatedURL);
           } else {
             toast({ title: "Something went wrong", variant: "destructive" });
           }
