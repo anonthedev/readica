@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { supabaseClient } from "@/lib/supabase";
 // import { clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";

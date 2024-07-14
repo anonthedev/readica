@@ -65,7 +65,6 @@ export default function PDFViewer({ uuid }: { uuid: string }) {
         })
         .then((resp) => {
           if (resp.data.success) {
-            console.log(resp.data.library);
             if (resp.data.library[0].highlighted_text) {
               setHighlights(() => [...resp.data.library[0].highlighted_text]);
             }
@@ -73,7 +72,9 @@ export default function PDFViewer({ uuid }: { uuid: string }) {
           } else {
             toast({ title: "Something went wrong", variant: "destructive" });
           }
-        });
+        }).catch((err)=>{
+          console.log(err)
+        })
     }
   }
 
