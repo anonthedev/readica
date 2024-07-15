@@ -64,7 +64,7 @@ export default function Notes({ uuid }: { uuid: string }) {
 
   function handleChange(newValue: string) {
     setValue(newValue);
-    console.log(newValue.toString("html"));
+    // console.log(newValue.toString("html"));
   }
 
   return (
