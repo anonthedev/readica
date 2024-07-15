@@ -7,7 +7,7 @@ import {
 
 export default function Navbar() {
   return (
-    <nav className="py-4 px-20 flex flex-row items-center justify-between md:px-8">
+    <nav className="py-4 px-20 flex flex-row items-center justify-between bg-transparent md:px-8">
       <span className="text-4xl font-bold">
         read<span className="text-yellow-500">ica.</span>
       </span>

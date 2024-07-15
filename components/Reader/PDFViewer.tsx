@@ -147,8 +147,7 @@ export default function PDFViewer({ uuid }: { uuid: string }) {
     <div>Loading...</div>;
   }
   return (
-    <div className="flex flex-col h-screen w-1/2">
-      <div className="h-screen w-full relative text-black">
+      <div className="h-full w-1/2 relative text-black">
         <PdfLoader url={url} beforeLoad={<div>Loading...</div>}>
           {(pdfDocument) => (
             <PdfHighlighter
@@ -222,6 +221,5 @@ export default function PDFViewer({ uuid }: { uuid: string }) {
           )}
         </PdfLoader>
       </div>
-    </div>
   );
 }
