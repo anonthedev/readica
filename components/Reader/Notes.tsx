@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "../ui/use-toast";
-import axios from "axios";
 //@ts-ignore
 const RichTextEditor = dynamic(() => import("react-rte"), { ssr: false });
 import "./reset.scss";
@@ -25,16 +24,16 @@ export default function Notes({
   const { toast } = useToast();
 
   async function startNotesValue() {
-    //@ts-ignore
-    const module = await import("react-rte");
+    // @ts-ignore
+    const reactRTEModule = await import("react-rte");
     const defaultValue = `<p>Loading...</p>`;
-    setNotes(module.createValueFromString(defaultValue, "html"));
+    setNotes(reactRTEModule.createValueFromString(defaultValue, "html"));
 
     if (serverNotes) {
-      setNotes(module.createValueFromString(serverNotes, "html"));
+      setNotes(reactRTEModule.createValueFromString(serverNotes, "html"));
     } else {
       setNotes(
-        module.createValueFromString(
+        reactRTEModule.createValueFromString(
           `<h2>Take some notes, it'll help you understand better.</h2>
         <p><img src="https://pbs.twimg.com/media/GSlqqlQbIAE3wZ8?format=jpg&amp;name=small" width="474" height="408"/></p>
         <p>You can delete Itachi, he won't mind.</p>`,
@@ -42,37 +41,6 @@ export default function Notes({
         )
       );
     }
-    // const token = await getToken({ template: "supabase" });
-    //     if (token) {
-    //       axios
-    //         .get(`/api/library/get-item-by-uuid?uuid=${uuid}`, {
-    //           headers: { Authorization: `Bearer ${token}` },
-    //         })
-    //         .then((resp) => {
-    //           if (resp.data.success) {
-    //             console.log(resp.data.library[0]);
-    //             if (resp.data.library[0].notes) {
-    //               setNotes(
-    //                 module.createValueFromString(resp.data.library[0].notes, "html")
-    //               );
-    //             } else {
-    //               setNotes(
-    //                 module.createValueFromString(
-    //                   `<h2>Take some notes, it'll help you understand better.</h2>
-    // <p><img src="https://pbs.twimg.com/media/GSlqqlQbIAE3wZ8?format=jpg&amp;name=small" width="474" height="408"/></p>
-    // <p>You can delete Itachi, he won't mind.</p>`,
-    //                   "html"
-    //                 )
-    //               );
-    //             }
-    //           } else {
-    //             toast({ title: "Something went wrong", variant: "destructive" });
-    //           }
-    //         })
-    //         .catch((err) => {
-    //           console.log(err);
-    //         });
-    // }
   }
 
   useEffect(() => {
