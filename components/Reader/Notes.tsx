@@ -44,14 +44,11 @@ export default function Notes({
   }
 
   useEffect(() => {
-    startNotesValue()
-    // getNotes();
-    // setNotes(serverNotes)
+    startNotesValue();
   }, []);
 
   function handleChange(newValue: string) {
     setNotes(newValue);
-    // console.log(newValue.toString("html"));
   }
 
   const customControls = [

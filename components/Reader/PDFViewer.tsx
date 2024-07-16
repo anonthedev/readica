@@ -55,7 +55,6 @@ export default function PDFViewer({
 }) {
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [scrollViewerTo, setScrollViewerTo] = useState(() => () => {});
-  // const [url, setURL] = useState("");
 
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
@@ -64,35 +63,7 @@ export default function PDFViewer({
     setHighlights([]);
   };
 
-  // async function getPDF() {
-  //   const token = await getToken({ template: "supabase" });
-  //   if (token) {
-  //     axios
-  //       .get(`/api/library/get-item-by-uuid?uuid=${uuid}`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((resp) => {
-  //         if (resp.data.success) {
-  //           if (resp.data.library[0].highlighted_text) {
-  //             setHighlights(() => [...resp.data.library[0].highlighted_text]);
-  //           }
-  //           let updatedURL = resp.data.library[0].pdf_link.replace(
-  //             /^http:/,
-  //             "https:"
-  //           );
-  //           // setURL(updatedURL);
-  //         } else {
-  //           toast({ title: "Something went wrong", variant: "destructive" });
-  //         }
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // }
-
   useEffect(() => {
-    // getPDF();
     setHighlights(()=>[...serverHighlights])
   }, []);
 
