@@ -14,6 +14,7 @@ export default function Page({ params }: { params: { uuid: string } }) {
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [pdfURL, setPdfURL] = useState("");
   const [notes, setNotes] = useState("");
+  const [gettingData, setGettingData] = useState(true);
   const { toast } = useToast();
 
   async function getPaperData() {
@@ -43,7 +44,7 @@ export default function Page({ params }: { params: { uuid: string } }) {
               );
             } else {
               setNotes(
-                  `<h2>Take some notes, it'll help you understand better.</h2>
+                `<h2>Take some notes, it'll help you understand better.</h2>
   <p><img src="https://pbs.twimg.com/media/GSlqqlQbIAE3wZ8?format=jpg&amp;name=small" width="474" height="408"/></p>
   <p>You can delete Itachi, he won't mind.</p>`
               );
@@ -57,6 +58,9 @@ export default function Page({ params }: { params: { uuid: string } }) {
         })
         .catch((err) => {
           console.log(err);
+        })
+        .finally(() => {
+          setGettingData(false);
         });
     }
   }
@@ -67,12 +71,18 @@ export default function Page({ params }: { params: { uuid: string } }) {
 
   return (
     <main className="w-screen flex flex-row h-[calc(100vh-80px)]">
-      <PDFViewer
-        serverHighlights={highlights}
-        url={pdfURL}
-        uuid={params.uuid}
-      />
-      <Notes serverNotes={notes} uuid={params.uuid} />
+      {!gettingData ? (
+        <>
+          <PDFViewer
+            serverHighlights={highlights}
+            url={pdfURL}
+            uuid={params.uuid}
+          />
+          <Notes serverNotes={notes} uuid={params.uuid} />
+        </>
+      ) : (
+        <div>Fetching data...</div>
+      )}
     </main>
   );
 }

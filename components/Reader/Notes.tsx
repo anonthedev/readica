@@ -30,6 +30,7 @@ export default function Notes({
     setNotes(reactRTEModule.createValueFromString(defaultValue, "html"));
 
     if (serverNotes) {
+      console.log(serverNotes)
       setNotes(reactRTEModule.createValueFromString(serverNotes, "html"));
     } else {
       setNotes(

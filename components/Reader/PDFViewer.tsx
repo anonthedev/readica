@@ -64,6 +64,7 @@ export default function PDFViewer({
   };
 
   useEffect(() => {
+    console.log(serverHighlights)
     setHighlights(()=>[...serverHighlights])
   }, []);
 
