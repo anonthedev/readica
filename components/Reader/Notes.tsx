@@ -64,7 +64,7 @@ export default function Notes({
           const token = await getToken({ template: "supabase" });
           const resp = await updateLib(token!, userId!, uuid, {
             //@ts-ignore
-            notes: value.toString("html"),
+            notes: notes.toString("html"),
           });
           if (resp.success) {
             toast({ title: "Notes saved successfully", variant: "success" });
