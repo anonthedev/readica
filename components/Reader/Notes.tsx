@@ -8,70 +8,116 @@ import axios from "axios";
 //@ts-ignore
 const RichTextEditor = dynamic(() => import("react-rte"), { ssr: false });
 import "./reset.scss";
+import { Button } from "../ui/button";
+import { updateLib } from "@/utils/supabaseFunctions";
 
-export default function Notes({ uuid }: { uuid: string }) {
-  const [value, setValue] = useState("");
+export default function Notes({
+  uuid,
+  serverNotes,
+}: {
+  uuid: string;
+  serverNotes: string;
+}) {
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
 
-  //   async function setEmptyValue() {
-
-  //     const module = await import("react-rte");
-  //     setValue(module.createEmptyValue());
-  //   }
-
-  async function getNotes() {
+  async function startNotesValue() {
     //@ts-ignore
     const module = await import("react-rte");
-    const defaultValue = `
-    <h2>Welcome to Your Notes</h2>
-    <p>This is a <strong>rich text editor</strong> where you can:</p>
-    <ul>
-      <li>Write your thoughts</li>
-      <li>Create <em>formatted</em> content</li>
-      <li>Organize your ideas</li>
-    </ul>
-    <p>Feel free to edit this content and start taking notes!</p>
-  `;
-    setValue(module.createValueFromString(defaultValue, "html"));
-    const token = await getToken({ template: "supabase" });
-    if (token) {
-      axios
-        .get(`/api/library/get-item-by-uuid?uuid=${uuid}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((resp) => {
-          if (resp.data.success) {
-            console.log(resp.data.library[0]);
-            if (resp.data.library[0].notes) {
-              setValue(
-                module.createValueFromString(resp.data.library[0].notes, "html")
-              );
-            }
-          } else {
-            toast({ title: "Something went wrong", variant: "destructive" });
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    const defaultValue = `<p>Loading...</p>`;
+    setNotes(module.createValueFromString(defaultValue, "html"));
+
+    if (serverNotes) {
+      setNotes(module.createValueFromString(serverNotes, "html"));
+    } else {
+      setNotes(
+        module.createValueFromString(
+          `<h2>Take some notes, it'll help you understand better.</h2>
+        <p><img src="https://pbs.twimg.com/media/GSlqqlQbIAE3wZ8?format=jpg&amp;name=small" width="474" height="408"/></p>
+        <p>You can delete Itachi, he won't mind.</p>`,
+          "html"
+        )
+      );
     }
+    // const token = await getToken({ template: "supabase" });
+    //     if (token) {
+    //       axios
+    //         .get(`/api/library/get-item-by-uuid?uuid=${uuid}`, {
+    //           headers: { Authorization: `Bearer ${token}` },
+    //         })
+    //         .then((resp) => {
+    //           if (resp.data.success) {
+    //             console.log(resp.data.library[0]);
+    //             if (resp.data.library[0].notes) {
+    //               setNotes(
+    //                 module.createValueFromString(resp.data.library[0].notes, "html")
+    //               );
+    //             } else {
+    //               setNotes(
+    //                 module.createValueFromString(
+    //                   `<h2>Take some notes, it'll help you understand better.</h2>
+    // <p><img src="https://pbs.twimg.com/media/GSlqqlQbIAE3wZ8?format=jpg&amp;name=small" width="474" height="408"/></p>
+    // <p>You can delete Itachi, he won't mind.</p>`,
+    //                   "html"
+    //                 )
+    //               );
+    //             }
+    //           } else {
+    //             toast({ title: "Something went wrong", variant: "destructive" });
+    //           }
+    //         })
+    //         .catch((err) => {
+    //           console.log(err);
+    //         });
+    // }
   }
 
   useEffect(() => {
-    getNotes();
+    startNotesValue()
+    // getNotes();
+    // setNotes(serverNotes)
   }, []);
 
   function handleChange(newValue: string) {
-    setValue(newValue);
+    setNotes(newValue);
     // console.log(newValue.toString("html"));
   }
 
+  const customControls = [
+    () => (
+      <Button
+        className="border-[1px] border-[gray] px-4 rounded-sm"
+        disabled={saving}
+        onClick={async () => {
+          setSaving(true);
+          const token = await getToken({ template: "supabase" });
+          const resp = await updateLib(token!, userId!, uuid, {
+            //@ts-ignore
+            notes: value.toString("html"),
+          });
+          if (resp.success) {
+            toast({ title: "Notes saved successfully", variant: "success" });
+            setSaving(false);
+          } else {
+            toast({ title: "Couldn't save notes", variant: "destructive" });
+            setSaving(false);
+          }
+        }}
+      >
+        {saving ? "Saving..." : "Save"}
+      </Button>
+    ),
+  ];
+
   return (
     <RichTextEditor
+      {...{ customControls }}
       //@ts-ignore
       className="unreset text-black w-1/2 h-full overflow-auto"
-      value={value}
+      value={notes}
       onChange={handleChange}
     />
   );
