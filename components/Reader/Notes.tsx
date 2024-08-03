@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import { useState, MouseEventHandler } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -21,11 +24,26 @@ import {
   Redo,
   Image as ImageIcon,
   X,
+  Save,
 } from "lucide-react";
 import "./reset.scss";
 import "./notes.scss";
+import { updateLib } from "@/utils/supabaseFunctions";
+import { useToast } from "../ui/use-toast";
 
-export default function Notes() {
+export default function Notes({
+  uuid,
+  serverNotes,
+}: {
+  uuid: string;
+  serverNotes: string;
+}) {
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const { getToken, userId } = useAuth();
+  const { toast } = useToast();
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -34,22 +52,43 @@ export default function Notes() {
         allowBase64: false,
       }),
     ],
-    content: "<p>Hello World! 🌎️</p>",
+    content: serverNotes,
+    onUpdate({ editor }) {
+      setNotes(editor.getHTML());
+    },
   });
 
+  async function saveNotes(){
+    setSaving(true);
+
+    const token = await getToken({ template: "supabase" });
+    const resp = await updateLib(token!, userId!, uuid, {
+      notes: notes,
+    });
+
+    if (resp.success) {
+      toast({ title: "Notes saved successfully", variant: "success" });
+      setSaving(false);
+    } else {
+      toast({ title: "Couldn't save notes", variant: "destructive" });
+      setSaving(false);
+    }
+  }
+
   return (
-    <div className="text-editor unreset h-full w-1/2 border-2 p-2 flex flex-col gap-2">
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
-    </div>
+      <div className="text-editor unreset h-full w-1/2 border-2 p-2 flex flex-col gap-2">
+        <MenuBar editor={editor} saveNotesFunc={saveNotes} />
+        <EditorContent editor={editor} />
+      </div>
   );
 }
 
-interface MenuBarProps {
+type MenuBarProps = {
   editor: Editor | null;
-}
+  saveNotesFunc: MouseEventHandler<HTMLButtonElement>;
+};
 
-const MenuBar: React.FC<MenuBarProps> = ({ editor }) => {
+const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
   if (!editor) {
     return null;
   }
@@ -234,6 +273,14 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor }) => {
         className="menu-item"
       >
         <X size={20} />
+      </button>
+      <button
+        // disabled={saving}
+        onClick={saveNotesFunc}
+        title="Save"
+        className="menu-item"
+      >
+        <Save size={20} />
       </button>
     </div>
   );
