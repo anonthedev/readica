@@ -3,6 +3,7 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { Button } from "./ui/button";
 
 export default function Navbar() {
   const { isSignedIn } = useUser();
@@ -19,7 +20,9 @@ export default function Navbar() {
           <UserButton />
         </SignedIn>
         <SignedOut>
-          <SignInButton />
+          <Button variant={"secondary"} asChild>
+            <Link className="font-semibold" href={"/sign-in"}>Sign In</Link>
+          </Button>
         </SignedOut>
       </div>
     </nav>
