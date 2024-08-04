@@ -66,7 +66,7 @@ export default function Dashboard() {
         setLibrary(sortedArr);
         setLoading(false);
       } else {
-        toast({ title: "Couldn't fetch library", description: resp.data.message });
+        toast({ title: "Couldn't fetch library", description: resp.data.message, variant: "destructive" });
         setLoading(false);
       }
     }
@@ -127,7 +127,8 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
         .then((resp) => {
           if (resp.success) {
             toast({
-              title: "✅ Status updated successfully",
+              title: "Status updated successfully",
+              variant: "success"
             });
           } else {
             toast({
@@ -170,7 +171,8 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
         .then((resp) => {
           if (resp.success) {
             toast({
-              title: "✅ Tags updated successfully",
+              title: "Tags updated successfully",
+              variant: "success"
             });
           } else {
             toast({
@@ -403,7 +405,8 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
               deleteFromLib(token!, userId!, item.uuid).then((resp) => {
                 if (resp.success) {
                   toast({
-                    title: "✅ Paper deleted successfully",
+                    title: "Paper deleted successfully",
+                    variant: "success"
                   });
                   getLibrary();
                 } else {

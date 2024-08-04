@@ -32,11 +32,11 @@ import { updateLib } from "@/utils/supabaseFunctions";
 import { useToast } from "../ui/use-toast";
 
 export default function Notes({
-  uuid,
   serverNotes,
+  uuid,
 }: {
-  uuid: string;
   serverNotes: string;
+  uuid: string;
 }) {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);

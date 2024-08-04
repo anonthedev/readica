@@ -18,8 +18,6 @@ export default function Page({ params }: { params: { uuid: string } }) {
   const { toast } = useToast();
 
   async function getPaperData() {
-    //@ts-ignore
-    // const module = await import("react-rte");
     const token = await getToken({ template: "supabase" });
     if (token) {
       axios
@@ -39,7 +37,6 @@ export default function Page({ params }: { params: { uuid: string } }) {
 
             if (resp.data.library[0].notes) {
               setNotes(
-                //@ts-ignore
                 resp.data.library[0].notes
               );
             } else {
@@ -70,7 +67,7 @@ export default function Page({ params }: { params: { uuid: string } }) {
   }, []);
 
   return (
-    <main className="w-screen flex flex-row h-[calc(100vh-80px)]">
+    <main className="w-screen flex flex-row justify-center h-[calc(100vh-80px)]">
       {!gettingData ? (
         <>
           <PDFViewer
@@ -81,7 +78,7 @@ export default function Page({ params }: { params: { uuid: string } }) {
           <Notes serverNotes={notes} uuid={params.uuid} />
         </>
       ) : (
-        <div>Fetching data...</div>
+        <div className="self-center">Fetching data...</div>
       )}
     </main>
   );
