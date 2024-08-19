@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import Search from "./Search";
 
 export default function Navbar() {
   const { isSignedIn } = useUser();
@@ -15,7 +16,11 @@ export default function Navbar() {
       >
         read<span className="text-yellow-500">ica.</span>
       </Link>
-      <div className="">
+      <div className="flex flex-row items-center justify-center gap-12">
+        <div className="flex flex-row gap-8">
+        <Search/>
+        <Button className="bg-purple">Upload Paper</Button>
+        </div>
         <SignedIn>
           <UserButton />
         </SignedIn>

@@ -2,24 +2,28 @@ import { createClerkClient } from "@clerk/nextjs/server";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const query = req.nextUrl.searchParams.get("query");
   const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
   });
+  const query = req.nextUrl.searchParams.get("query");
+  if (!query) {
+    return null;
+  }
   try {
-    const users = await clerkClient.users.getUserList();
-    const userDetails = users.data.map((user) => {
-      return {
-        username: user.username,
-        name: `${user.firstName} ${user.lastName ? user.lastName : ""}`,
-      };
+    const users = await clerkClient.users.getUserList({
+      query: query,
     });
-    console.log
-    return NextResponse.json({ userDetails, success: true });
+    console.log(users.data);
+    if (users.data.length > 0) {
+      return NextResponse.json({ users: users.data, success: true });
+    } else {
+      return NextResponse.json({ message: "User not found", success: false });
+    }
   } catch (error) {
-    console.error("Error fetching usernames:", error);
+    console.error("Error fetching user:", error);
     return NextResponse.json({
-      error: "Failed to fetch usernames",
+      message: "Error fetching user",
+      error: error,
       success: false,
     });
   }

@@ -7,7 +7,7 @@ import { LibraryItemType } from "@/utils/types";
 import { useToast } from "@/components/ui/use-toast";
 import Search from "../Search";
 import { deleteFromLib, getLib, updateLib } from "@/utils/supabaseFunctions";
-import { Ellipsis, X } from "lucide-react";
+import { EllipsisVertical, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +26,13 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import axios from "axios";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { turnacateString } from "@/utils/utilFunctions";
 
 export const libraryContext = createContext<any>(null);
 
 export default function Dashboard() {
-  const [library, setLibrary] = useState<LibraryItemType[] | null>(null);
+  const [library, setLibrary] = useState<LibraryItemType[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { getToken, userId } = useAuth();
@@ -39,6 +41,10 @@ export default function Dashboard() {
   useEffect(() => {
     getLibrary();
   }, []);
+
+  // const queryClient = useQueryClient()
+
+  // const {data}: {data: LibraryItemType[]} = useQuery({queryKey: ["get-papers"], queryFn: getLibrary})
 
   async function getLibrary() {
     setLoading(true);
@@ -65,8 +71,13 @@ export default function Dashboard() {
         );
         setLibrary(sortedArr);
         setLoading(false);
+        // return sortedArr
       } else {
-        toast({ title: "Couldn't fetch library", description: resp.data.message, variant: "destructive" });
+        toast({
+          title: "Couldn't fetch library",
+          description: resp.data.message,
+          variant: "destructive",
+        });
         setLoading(false);
       }
     }
@@ -75,14 +86,13 @@ export default function Dashboard() {
   return (
     <libraryContext.Provider value={{ library, setLibrary, getLibrary }}>
       <main className="mx-20 my-10 md:mx-8">
-        <Search />
+        {/* <Search /> */}
         {!loading ? (
           <section className="mt-8 w-full">
             <article className="flex flex-col gap-5">
               <h1 className="text-3xl font-bold">My Library</h1>
-              <div className="w-full grid grid-cols-2 items-start justify-between gap-8 lg:grid-cols-1">
-                {library &&
-                  library.length > 0 &&
+              <div className="w-full flex flex-row flex-wrap gap-6">
+                {library.length > 0 &&
                   library.map((item) => (
                     <LibraryItem item={item} key={item.uuid} />
                   ))}
@@ -128,7 +138,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
           if (resp.success) {
             toast({
               title: "Status updated successfully",
-              variant: "success"
+              variant: "success",
             });
           } else {
             toast({
@@ -172,7 +182,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
           if (resp.success) {
             toast({
               title: "Tags updated successfully",
-              variant: "success"
+              variant: "success",
             });
           } else {
             toast({
@@ -200,35 +210,36 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
     }
   }
   return (
-    <div className="flex flex-row gap-2 items-start" key={item.uuid}>
-      <Link
-        href={`/reader/${item.uuid}`}
-        className="flex flex-col gap-2 w-fit"
-      >
-        <h2 className="font-semibold text-lg max-w-[50ch]">{item.title}</h2>
+    <div className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#F5F5F5]" key={item.uuid}>
+      <Link href={`/reader/${item.uuid}`} className="flex flex-col gap-2 w-fit justify-between items-start h-full">
+        <h2 className="font-medium text-lg max-w-[25ch]">
+          {turnacateString(item.title, 45)}
+        </h2>
+        <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
+          {item.authors.length > 2
+            ? item.authors.slice(0, 2).join(", ") +
+              `, +${item.authors.length - 2}`
+            : item.authors.join(", ")}
+        </p>
         <p
-          className="font-medium text-sm max-w-prose text-ellipsis"
+          className="font-[400] text-xs max-w-[40ch] text-ellipsis"
           title={item.description}
         >
-          {item.description?.length! < 220
-            ? item.description
-            : item.description?.slice(0, 220) + "..."}
+          {turnacateString(item.description, 65)}
         </p>
-        <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
-          {item.authors.join(", ")}
-        </p>
-        {item.status && (
+
+        {/* {item.status && (
           <p className="text-xs">
             Status: <span className="text-gray-400">{item.status}</span>
           </p>
-        )}
+        )} */}
         <p className="flex flex-row gap-1">
           {item.tags &&
             item.tags.length !== 0 &&
             item.tags.map((tag) => (
               <span
                 key={tag}
-                className=" text-xs bg-gray-800 rounded-md py-1 px-2 text-gray-300 text-center"
+                className=" text-xs bg-[#78787814] rounded-md py-1 px-2 text-[#646464] text-center"
               >
                 {tag}
               </span>
@@ -237,7 +248,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
       </Link>
       <DropdownMenu>
         <DropdownMenuTrigger className="w-fit">
-          <Ellipsis />
+          <EllipsisVertical size={24} />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
@@ -406,7 +417,7 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
                 if (resp.success) {
                   toast({
                     title: "Paper deleted successfully",
-                    variant: "success"
+                    variant: "success",
                   });
                   getLibrary();
                 } else {

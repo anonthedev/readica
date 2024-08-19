@@ -21,6 +21,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toast": "^1.2.1",
     "@supabase/supabase-js": "^2.43.5",
+    "@tanstack/react-query": "^5.51.21",
     "@tiptap/extension-image": "^2.5.8",
     "@tiptap/react": "^2.5.8",
     "@tiptap/starter-kit": "^2.5.8",
