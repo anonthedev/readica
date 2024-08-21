@@ -42,8 +42,11 @@ export default function Search() {
     users: User[];
   } | null>(null);
   const [tempSearchQuery, setTempSearchQuery] = useState("");
-  const [collapseSearchResults, setCollapseSearchResults] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [searchDomain, setSearchDomain] = useState<"library" | "global">(
+    "library"
+  );
+  const [searching, setSearching] = useState(false);
 
   const searchParams = useSearchParams();
   const params = useParams();
@@ -56,6 +59,7 @@ export default function Search() {
   const debouncedSearchQuery = useDebounce(tempSearchQuery, 300);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   // const { setLibrary } = useContext(libraryContext);
 
@@ -65,13 +69,6 @@ export default function Search() {
       setTempSearchQuery(query);
     }
   }, [searchParams]);
-
-  // useEffect(() => {
-  //   if (tempSearchQuery.length === 0) {
-  //     router.push(pathname);
-  //     setResults([]);
-  //   }
-  // }, [tempSearchQuery]);
 
   useEffect(() => {
     if (debouncedSearchQuery.length > 2) {
@@ -93,7 +90,26 @@ export default function Search() {
     };
   }, [searchParams]);
 
+  async function handleLibSearch() {
+    const query = searchParams.get("q") || "";
+    if (query.length > 2) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
+
+      try {
+        const lib = await getLibrary();
+        if (lib) {
+        }
+      } catch {}
+    }
+  }
+
   async function handleSearch() {
+    setSearching(true);
+    setResults(null);
     const query = searchParams.get("q") || "";
     if (query.length > 2) {
       if (abortControllerRef.current) {
@@ -119,6 +135,7 @@ export default function Search() {
         console.log(err);
       } finally {
         setLoading(false);
+        setSearching(false);
       }
     }
   }
@@ -142,85 +159,42 @@ export default function Search() {
           return dateB.getTime() - dateA.getTime();
         }
       );
+
+      return sortedArr;
       // setLibrary(sortedArr);
     } else {
       toast({
         title: "Couldn't fetch library",
         description: resp.data.message,
       });
+
+      return null;
     }
   }
 
-  async function handleAddToLib(paperDetails: SearchedPaperDetails) {
-    toast({ title: "🔘 Adding..." });
-    const token = await getToken({ template: "supabase" });
-    if (!token || !userId) {
-      toast({ title: "Please login/signup first", variant: "destructive" });
-      return;
-    }
-
-    const result = await axios.post(
-      `/api/library?userId=${userId}`,
-      {
-        title: paperDetails.title,
-        description: paperDetails.description,
-        authors: paperDetails.authors,
-        pdf_link: paperDetails.pdf_link,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (result.data.success) {
-      toast({
-        title: "Paper added to library successfully",
-        variant: "success",
-      });
-      getLibrary();
-    } else {
-      if (result.data.code === "23505") {
-        toast({
-          title: "Paper is already in your library",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Something went wrong",
-          description: result.data.message || result.data.error,
-        });
-      }
-    }
-  }
-
-  const handleInputFocus = useCallback((e: React.FocusEvent) => {
-    console.log("focused");
-    e.stopPropagation();
+  const handleInputFocus = useCallback(() => {
     setIsInputFocused(true);
   }, []);
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setTempSearchQuery(e.target.value);
-    },
-    []
-  );
+  const handleInputBlur = useCallback((e: React.FocusEvent) => {
+    // Check if the click happened inside the results div
+    if (
+      resultsRef.current &&
+      !resultsRef.current.contains(e.relatedTarget as Node)
+    ) {
+      setIsInputFocused(false);
+    }
+  }, []);
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsInputFocused(true);
+  };
 
   return (
     <section className="flex flex-col relative">
       <div className="flex flex-row gap-0">
-        {/* <form
-        // onSubmit={(e) => {
-        //   e.preventDefault();
-        //   if (tempSearchQuery !== "") {
-          //     router.push(`?q=${encodeURIComponent(tempSearchQuery)}`);
-          //   }
-          // }}
-        className="w-full flex flex-row gap-2 items-center justify-center md:flex-col"
-      > */}
         <Input
           className="w-[300px] rounded-r-none md:w-1/2"
           placeholder="Search Research Papers & Users"
@@ -229,10 +203,15 @@ export default function Search() {
             setTempSearchQuery(e.target.value);
           }}
           ref={inputRef}
-          // onFocus={handleInputFocus}
-          // onBlur={() => setIsInputFocused(false)}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
         />
-        <Select defaultValue="library">
+        <Select
+          defaultValue="library"
+          onValueChange={(e) => {
+            setSearchDomain(e as "library" | "global");
+          }}
+        >
           <SelectTrigger className="w-[125px] rounded-l-none">
             <SelectValue placeholder="Theme" />
           </SelectTrigger>
@@ -241,12 +220,11 @@ export default function Search() {
             <SelectItem value="global">Global</SelectItem>
           </SelectContent>
         </Select>
-        {/* </form> */}
       </div>
 
-      {/* <div className={`${isInputFocused ? "absolute" : "hidden"} top-10 `}> */}
-      {results && (
+      {results && !searching ? (
         <div
+        ref={resultsRef}
           className={`${
             isInputFocused ? "absolute" : "hidden"
           } top-10 w-full bg-white rounded-md shadow-[0px_4px_20px_0px_#00000033] p-6 flex flex-col gap-8`}
@@ -256,7 +234,12 @@ export default function Search() {
               <span className="text-[#525252]">Papers</span>
               {results.papers.slice(0, 3).map((paper) => (
                 <>
-                  <Link href={paper.pdf_link} target="_blank" className="flex flex-row gap-2 items-center">
+                  <Link
+                    href={paper.pdf_link}
+                    target="_blank"
+                    className="flex flex-row gap-2 items-center"
+                    onMouseDown={handleLinkClick}
+                  >
                     <File strokeWidth={1} size={20} />
                     <span className="w-full text-ellipsis">
                       {paper.title.length > 40
@@ -282,6 +265,7 @@ export default function Search() {
                       href={`/p/${user.username}`}
                       target="_blank"
                       className="flex flex-row gap-2 items-center w-full"
+                      onMouseDown={handleLinkClick}
                     >
                       <img
                         src={user.imageUrl}
@@ -296,6 +280,17 @@ export default function Search() {
             </div>
           )}
         </div>
+      ) : (
+        searching &&
+        searchParams.get("q") && (
+          <div
+            className={`${
+              isInputFocused ? "absolute" : "hidden"
+            } top-10 w-full bg-white rounded-md shadow-[0px_4px_20px_0px_#00000033] p-6 flex flex-col gap-8`}
+          >
+            Loading...
+          </div>
+        )
       )}
       {/* </div> */}
     </section>
