@@ -295,48 +295,6 @@ export default function Search() {
             isInputFocused ? "absolute" : "hidden"
           } top-10 w-full bg-white rounded-md shadow-[0px_4px_20px_0px_#00000033] p-6 flex flex-col gap-8`}
         >
-          {/* {results.papers && results.papers.length !== 0 && (
-            <div className="flex flex-col gap-2">
-              <span className="text-[#525252]">Papers</span>
-              {results.papers.length >= 3
-                ? results.papers.slice(0, 3).map((paper) => (
-                    <>
-                      <Link
-                        href={paper.pdf_link}
-                        target="_blank"
-                        className="flex flex-row gap-2 items-center"
-                        onMouseDown={handleLinkClick}
-                      >
-                        <File strokeWidth={1} size={20} />
-                        <span className="w-full text-ellipsis">
-                          {paper.title.length > 40
-                            ? paper.title.slice(0, 40) + "..."
-                            : paper.title}
-                        </span>
-                      </Link>
-                      <hr />
-                    </>
-                  ))
-                : results.papers.map((paper) => (
-                    <>
-                      <Link
-                        href={paper.pdf_link}
-                        target="_blank"
-                        className="flex flex-row gap-2 items-center"
-                        onMouseDown={handleLinkClick}
-                      >
-                        <File strokeWidth={1} size={20} />
-                        <span className="w-full text-ellipsis">
-                          {paper.title.length > 40
-                            ? paper.title.slice(0, 40) + "..."
-                            : paper.title}
-                        </span>
-                      </Link>
-                      <hr />
-                    </>
-                  ))}
-            </div>
-          )} */}
           {memoizedPaperResults}
 
           {results.users && results.users.length !== 0 && (
