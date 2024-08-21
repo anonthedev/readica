@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
+import { turnacateString } from "@/utils/utilFunctions";
+import Link from "next/link";
 
 export default function User({ username }: { username: string }) {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
@@ -49,8 +51,9 @@ export default function User({ username }: { username: string }) {
       return;
     } else {
       const resp = await getLib(token, profileUserId!);
-      if (resp.success) {
-        setLibrary(resp.data);
+      if (resp.data.success) {
+        // console.log(resp.data)
+        setLibrary(resp.data.library);
         setLoading(false);
       } else {
         toast({ title: "Couldn't fetch library", variant: "destructive" });
@@ -84,7 +87,10 @@ export default function User({ username }: { username: string }) {
     );
 
     if (result.data.success) {
-      toast({ title: "✅ Paper added to library successfully" });
+      toast({
+        title: "Paper added to library successfully",
+        variant: "success",
+      });
       getLibrary();
     } else {
       if (result.data.code === "23505") {
@@ -96,6 +102,7 @@ export default function User({ username }: { username: string }) {
         toast({
           title: "Something went wrong",
           description: result.data.message || result.data.error,
+          variant: "destructive",
         });
       }
     }
@@ -116,40 +123,50 @@ export default function User({ username }: { username: string }) {
                 {userDetails.firstName}&apos;s Library
               </h1>
             )}
-            <div className="w-full grid grid-cols-2 items-start justify-between gap-8 lg:grid-cols-1">
+            <div className="w-full flex flex-row flex-wrap gap-6">
               {library &&
                 library.length > 0 &&
                 library.map((item) => (
                   <div
-                    className="flex flex-row gap-2 items-start"
+                    className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#F5F5F5]"
                     key={item.uuid}
                   >
-                    <a
-                      target="_blank"
-                      href={item.pdf_link}
-                      className="flex flex-col gap-2 w-fit"
+                    <Link
+                      href={`/reader/${item.uuid}`}
+                      className="flex flex-col gap-6 justify-between w-fit items-start h-full"
                     >
-                      <h2 className="font-semibold text-lg max-w-[50ch]">
-                        {item.title}
-                      </h2>
-                      <p
-                        className="font-medium text-sm max-w-prose text-ellipsis"
-                        title={item.description}
-                      >
-                        {item.description?.length! < 220
-                          ? item.description
-                          : item.description?.slice(0, 220) + "..."}
-                      </p>
-                      <p className="max-w-prose text-ellipsis text-gray-400">
-                        {item.authors.join(", ")}
-                      </p>
-                      {item.status && (
-                        <p className="text-sm">
-                          Status:{" "}
-                          <span className="text-gray-400">{item.status}</span>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                          <h2 className="font-medium text-lg max-w-[25ch]">
+                            {turnacateString(item.title, 45)}
+                          </h2>
+                          <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
+                            {item.authors.length > 2
+                              ? item.authors.slice(0, 2).join(", ") +
+                                `, +${item.authors.length - 2}`
+                              : item.authors.join(", ")}
+                          </p>
+                        </div>
+                        <p
+                          className="font-[400] text-xs max-w-[40ch] text-ellipsis"
+                          title={item.description}
+                        >
+                          {turnacateString(item.description, 65)}
                         </p>
-                      )}
-                    </a>
+                      </div>
+                      <p className="flex flex-row gap-1">
+                        {item.tags &&
+                          item.tags.length !== 0 &&
+                          item.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className=" text-xs bg-[#78787814] rounded-md py-1 px-2 text-[#646464] text-center"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                      </p>
+                    </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger className="w-fit">
                         <Ellipsis />

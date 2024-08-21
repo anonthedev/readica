@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 
 import { LibraryItemType } from "@/utils/types";
 import { useToast } from "@/components/ui/use-toast";
-import Search from "../Search";
+import Search from "../NavSearch";
 import { deleteFromLib, getLib, updateLib } from "@/utils/supabaseFunctions";
 import { EllipsisVertical, X } from "lucide-react";
 import {
@@ -210,29 +210,33 @@ function LibraryItem({ item }: { item: LibraryItemType }) {
     }
   }
   return (
-    <div className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#F5F5F5]" key={item.uuid}>
-      <Link href={`/reader/${item.uuid}`} className="flex flex-col gap-2 w-fit justify-between items-start h-full">
-        <h2 className="font-medium text-lg max-w-[25ch]">
-          {turnacateString(item.title, 45)}
-        </h2>
-        <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
-          {item.authors.length > 2
-            ? item.authors.slice(0, 2).join(", ") +
-              `, +${item.authors.length - 2}`
-            : item.authors.join(", ")}
-        </p>
-        <p
-          className="font-[400] text-xs max-w-[40ch] text-ellipsis"
-          title={item.description}
-        >
-          {turnacateString(item.description, 65)}
-        </p>
-
-        {/* {item.status && (
-          <p className="text-xs">
-            Status: <span className="text-gray-400">{item.status}</span>
+    <div
+      className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#F5F5F5]"
+      key={item.uuid}
+    >
+      <Link
+        href={`/reader/${item.uuid}`}
+        className="flex flex-col gap-6 justify-between w-fit items-start h-full"
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-medium text-lg max-w-[25ch]">
+              {turnacateString(item.title, 45)}
+            </h2>
+            <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
+              {item.authors.length > 2
+                ? item.authors.slice(0, 2).join(", ") +
+                  `, +${item.authors.length - 2}`
+                : item.authors.join(", ")}
+            </p>
+          </div>
+          <p
+            className="font-[400] text-xs max-w-[40ch] text-ellipsis"
+            title={item.description}
+          >
+            {turnacateString(item.description, 65)}
           </p>
-        )} */}
+        </div>
         <p className="flex flex-row gap-1">
           {item.tags &&
             item.tags.length !== 0 &&

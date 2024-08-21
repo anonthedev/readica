@@ -1,8 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Ellipsis, ChevronDown, File } from "lucide-react";
+import { File } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,32 +10,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  useSearchParams,
-  useRouter,
-  usePathname,
-  useParams,
-} from "next/navigation";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useContext,
-  useRef,
-  useCallback,
-} from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useToast } from "@/components/ui/use-toast";
 import { LibraryItemType, SearchedPaperDetails } from "@/utils/types";
 import { arxivSearch } from "@/utils/paperSearchFuntions";
-import { addToLib, getLib } from "@/utils/supabaseFunctions";
-import { libraryContext } from "@/components/Dashboard/Dashboard";
 import axios from "axios";
 import { useDebounce } from "@/hooks/useDebounce";
 import { User } from "@clerk/nextjs/server";
 import Link from "next/link";
 
-export default function Search() {
+export default function NavSearch() {
   const [results, setResults] = useState<{
     papers: SearchedPaperDetails[] | LibraryItemType[];
     users: User[] | null;
@@ -49,10 +34,8 @@ export default function Search() {
   const [searching, setSearching] = useState(false);
 
   const searchParams = useSearchParams();
-  const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [loading, setLoading] = useState(false);
 
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
@@ -79,16 +62,15 @@ export default function Search() {
     }
   }, [debouncedSearchQuery]);
 
-  useEffect(() => {
+  useMemo(() => {
     handleSearch();
 
     return () => {
-      // Cancel any ongoing search when component unmounts
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  }, [searchParams]);
+  }, [searchParams, searchDomain]);
 
   async function librarySearch(query: string) {
     if (query.length > 2) {
@@ -121,8 +103,6 @@ export default function Search() {
       }
 
       abortControllerRef.current = new AbortController();
-
-      setLoading(true);
       try {
         const usersResult = await axios.get(`/api/users/search?query=${query}`);
         let users;
@@ -138,7 +118,6 @@ export default function Search() {
       } catch (err) {
         console.log(err);
       } finally {
-        setLoading(false);
         setSearching(false);
       }
     }
@@ -168,7 +147,7 @@ export default function Search() {
     });
     if (resp.data.success) {
       console.log(resp.data);
-      const sortedArr: LibraryItemType[] = resp.data.library.sort(
+      const sortedResults: LibraryItemType[] = resp.data.library.sort(
         (a: LibraryItemType, b: LibraryItemType) => {
           const dateA = new Date(a.upload_date);
           const dateB = new Date(b.upload_date);
@@ -177,8 +156,7 @@ export default function Search() {
         }
       );
 
-      return sortedArr;
-      // setLibrary(sortedArr);
+      return sortedResults;
     } else {
       toast({
         title: "Couldn't fetch library",
@@ -194,7 +172,6 @@ export default function Search() {
   }, []);
 
   const handleInputBlur = useCallback((e: React.FocusEvent) => {
-    // Check if the click happened inside the results div
     if (
       resultsRef.current &&
       !resultsRef.current.contains(e.relatedTarget as Node)
@@ -208,55 +185,6 @@ export default function Search() {
     e.stopPropagation();
     setIsInputFocused(true);
   };
-
-  const memoizedPaperResults = useMemo(() => {
-    if (results?.papers) {
-      return (
-        <div className="flex flex-col gap-2">
-          <span className="text-[#525252]">Papers</span>
-          {results.papers.length >= 3
-            ? results.papers.slice(0, 3).map((paper) => (
-                <>
-                  <Link
-                    href={paper.pdf_link}
-                    target="_blank"
-                    className="flex flex-row gap-2 items-center"
-                    onMouseDown={handleLinkClick}
-                  >
-                    <File strokeWidth={1} size={20} />
-                    <span className="w-full text-ellipsis">
-                      {paper.title.length > 40
-                        ? paper.title.slice(0, 40) + "..."
-                        : paper.title}
-                    </span>
-                  </Link>
-                  <hr />
-                </>
-              ))
-            : results.papers.map((paper) => (
-                <>
-                  <Link
-                    href={paper.pdf_link}
-                    target="_blank"
-                    className="flex flex-row gap-2 items-center"
-                    onMouseDown={handleLinkClick}
-                  >
-                    <File strokeWidth={1} size={20} />
-                    <span className="w-full text-ellipsis">
-                      {paper.title.length > 40
-                        ? paper.title.slice(0, 40) + "..."
-                        : paper.title}
-                    </span>
-                  </Link>
-                  <hr />
-                </>
-              ))}
-        </div>
-      );
-    }
-
-    return null;
-  }, [results?.papers]);
 
   return (
     <section className="flex flex-col relative">
@@ -295,9 +223,52 @@ export default function Search() {
             isInputFocused ? "absolute" : "hidden"
           } top-10 w-full bg-white rounded-md shadow-[0px_4px_20px_0px_#00000033] p-6 flex flex-col gap-8`}
         >
-          {memoizedPaperResults}
+          {results.papers && results.papers.length !== 0 ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-[#525252]">Papers</span>
+              {results.papers.length >= 3
+                ? results.papers.slice(0, 3).map((paper) => (
+                    <>
+                      <Link
+                        href={paper.pdf_link}
+                        target="_blank"
+                        className="flex flex-row gap-2 items-center"
+                        onMouseDown={handleLinkClick}
+                      >
+                        <File strokeWidth={1} size={20} />
+                        <span className="w-full text-ellipsis">
+                          {paper.title.length > 40
+                            ? paper.title.slice(0, 40) + "..."
+                            : paper.title}
+                        </span>
+                      </Link>
+                      <hr />
+                    </>
+                  ))
+                : results.papers.map((paper) => (
+                    <>
+                      <Link
+                        href={paper.pdf_link}
+                        target="_blank"
+                        className="flex flex-row gap-2 items-center"
+                        onMouseDown={handleLinkClick}
+                      >
+                        <File strokeWidth={1} size={20} />
+                        <span className="w-full text-ellipsis">
+                          {paper.title.length > 40
+                            ? paper.title.slice(0, 40) + "..."
+                            : paper.title}
+                        </span>
+                      </Link>
+                      <hr />
+                    </>
+                  ))}
+            </div>
+          ) : (
+            <div>No papers found.</div>
+          )}
 
-          {results.users && results.users.length !== 0 && (
+          {results.users && results.users.length !== 0 ? (
             <div className="flex flex-col gap-2">
               <span className="text-[#525252]">Users</span>
               {results.users.map((user) => {
@@ -322,6 +293,8 @@ export default function Search() {
                 );
               })}
             </div>
+          ) : (
+            <div>No users found.</div>
           )}
         </div>
       ) : (
