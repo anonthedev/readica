@@ -38,8 +38,8 @@ import Link from "next/link";
 
 export default function Search() {
   const [results, setResults] = useState<{
-    papers: SearchedPaperDetails[];
-    users: User[];
+    papers: SearchedPaperDetails[] | LibraryItemType[];
+    users: User[] | null;
   } | null>(null);
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -56,7 +56,7 @@ export default function Search() {
 
   const { getToken, userId } = useAuth();
   const { toast } = useToast();
-  const debouncedSearchQuery = useDebounce(tempSearchQuery, 300);
+  const debouncedSearchQuery = useDebounce(tempSearchQuery, 1000);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
@@ -90,8 +90,7 @@ export default function Search() {
     };
   }, [searchParams]);
 
-  async function handleLibSearch() {
-    const query = searchParams.get("q") || "";
+  async function librarySearch(query: string) {
     if (query.length > 2) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -102,15 +101,20 @@ export default function Search() {
       try {
         const lib = await getLibrary();
         if (lib) {
+          const filteredLib = lib.filter((libItem) =>
+            libItem.title.toLowerCase().includes(query.toLowerCase())
+          );
+          console.log(filteredLib);
+          setResults({ papers: filteredLib, users: null });
+          setSearching(false);
         }
-      } catch {}
+      } catch (err) {
+        throw err;
+      }
     }
   }
 
-  async function handleSearch() {
-    setSearching(true);
-    setResults(null);
-    const query = searchParams.get("q") || "";
+  async function globalSearch(query: string) {
     if (query.length > 2) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -140,6 +144,19 @@ export default function Search() {
     }
   }
 
+  async function handleSearch() {
+    setSearching(true);
+    setResults(null);
+
+    const query = searchParams.get("q") || "";
+
+    if (searchDomain === "library") {
+      librarySearch(query);
+    } else {
+      globalSearch(query);
+    }
+  }
+
   async function getLibrary() {
     const token = await getToken({ template: "supabase" });
 
@@ -151,7 +168,7 @@ export default function Search() {
     });
     if (resp.data.success) {
       console.log(resp.data);
-      const sortedArr = resp.data.library.sort(
+      const sortedArr: LibraryItemType[] = resp.data.library.sort(
         (a: LibraryItemType, b: LibraryItemType) => {
           const dateA = new Date(a.upload_date);
           const dateB = new Date(b.upload_date);
@@ -192,6 +209,55 @@ export default function Search() {
     setIsInputFocused(true);
   };
 
+  const memoizedPaperResults = useMemo(() => {
+    if (results?.papers) {
+      return (
+        <div className="flex flex-col gap-2">
+          <span className="text-[#525252]">Papers</span>
+          {results.papers.length >= 3
+            ? results.papers.slice(0, 3).map((paper) => (
+                <>
+                  <Link
+                    href={paper.pdf_link}
+                    target="_blank"
+                    className="flex flex-row gap-2 items-center"
+                    onMouseDown={handleLinkClick}
+                  >
+                    <File strokeWidth={1} size={20} />
+                    <span className="w-full text-ellipsis">
+                      {paper.title.length > 40
+                        ? paper.title.slice(0, 40) + "..."
+                        : paper.title}
+                    </span>
+                  </Link>
+                  <hr />
+                </>
+              ))
+            : results.papers.map((paper) => (
+                <>
+                  <Link
+                    href={paper.pdf_link}
+                    target="_blank"
+                    className="flex flex-row gap-2 items-center"
+                    onMouseDown={handleLinkClick}
+                  >
+                    <File strokeWidth={1} size={20} />
+                    <span className="w-full text-ellipsis">
+                      {paper.title.length > 40
+                        ? paper.title.slice(0, 40) + "..."
+                        : paper.title}
+                    </span>
+                  </Link>
+                  <hr />
+                </>
+              ))}
+        </div>
+      );
+    }
+
+    return null;
+  }, [results?.papers]);
+
   return (
     <section className="flex flex-col relative">
       <div className="flex flex-row gap-0">
@@ -224,34 +290,54 @@ export default function Search() {
 
       {results && !searching ? (
         <div
-        ref={resultsRef}
+          ref={resultsRef}
           className={`${
             isInputFocused ? "absolute" : "hidden"
           } top-10 w-full bg-white rounded-md shadow-[0px_4px_20px_0px_#00000033] p-6 flex flex-col gap-8`}
         >
-          {results.papers && results.papers.length !== 0 && (
+          {/* {results.papers && results.papers.length !== 0 && (
             <div className="flex flex-col gap-2">
               <span className="text-[#525252]">Papers</span>
-              {results.papers.slice(0, 3).map((paper) => (
-                <>
-                  <Link
-                    href={paper.pdf_link}
-                    target="_blank"
-                    className="flex flex-row gap-2 items-center"
-                    onMouseDown={handleLinkClick}
-                  >
-                    <File strokeWidth={1} size={20} />
-                    <span className="w-full text-ellipsis">
-                      {paper.title.length > 40
-                        ? paper.title.slice(0, 40) + "..."
-                        : paper.title}
-                    </span>
-                  </Link>
-                  <hr />
-                </>
-              ))}
+              {results.papers.length >= 3
+                ? results.papers.slice(0, 3).map((paper) => (
+                    <>
+                      <Link
+                        href={paper.pdf_link}
+                        target="_blank"
+                        className="flex flex-row gap-2 items-center"
+                        onMouseDown={handleLinkClick}
+                      >
+                        <File strokeWidth={1} size={20} />
+                        <span className="w-full text-ellipsis">
+                          {paper.title.length > 40
+                            ? paper.title.slice(0, 40) + "..."
+                            : paper.title}
+                        </span>
+                      </Link>
+                      <hr />
+                    </>
+                  ))
+                : results.papers.map((paper) => (
+                    <>
+                      <Link
+                        href={paper.pdf_link}
+                        target="_blank"
+                        className="flex flex-row gap-2 items-center"
+                        onMouseDown={handleLinkClick}
+                      >
+                        <File strokeWidth={1} size={20} />
+                        <span className="w-full text-ellipsis">
+                          {paper.title.length > 40
+                            ? paper.title.slice(0, 40) + "..."
+                            : paper.title}
+                        </span>
+                      </Link>
+                      <hr />
+                    </>
+                  ))}
             </div>
-          )}
+          )} */}
+          {memoizedPaperResults}
 
           {results.users && results.users.length !== 0 && (
             <div className="flex flex-col gap-2">
