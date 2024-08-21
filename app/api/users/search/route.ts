@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   });
   const query = req.nextUrl.searchParams.get("query");
   if (!query) {
-    return null;
+    return NextResponse.json({message: "No query", success: false});
   }
   try {
     const users = await clerkClient.users.getUserList({

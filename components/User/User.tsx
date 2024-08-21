@@ -31,6 +31,7 @@ export default function User({ username }: { username: string }) {
       .then((resp) => {
         if (resp.data.success) {
           setProfileUserId(resp.data.user.id);
+          console.log(resp.data.user);
           setUserDetails(resp.data.user);
         } else {
           toast({ title: resp.data.message });
@@ -117,11 +118,21 @@ export default function User({ username }: { username: string }) {
     <>
       {!loading ? (
         <section className="mt-8 w-full mx-20 md:mx-8">
-          <article className="flex flex-col gap-5">
+          <article className="flex flex-col gap-24">
             {userDetails && (
-              <h1 className="text-3xl font-bold">
-                {userDetails.firstName}&apos;s Library
-              </h1>
+              <div className="flex flex-row items-center gap-8">
+                <img
+                  className="w-[120px] rounded-full"
+                  src={userDetails.imageUrl}
+                  alt={`profile picture of ${userDetails.firstName}`}
+                />
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-xl font-semibold">
+                    {userDetails.firstName}
+                  </h1>
+                  <span className="font-normal text-[#71717A]">@{userDetails.username}</span>
+                </div>
+              </div>
             )}
             <div className="w-full flex flex-row flex-wrap gap-6">
               {library &&
