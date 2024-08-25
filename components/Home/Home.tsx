@@ -9,7 +9,7 @@ export default function Home() {
 
   return (
     <main
-      className={`relative w-screen min-h-[calc(100vh-80px)] flex flex-row items-center justify-between md:px-8  bg-center bg-cover bg-no-repeat`}
+      className={`relative w-full min-h-[calc(100vh-80px)] flex flex-row items-center justify-between bg-center bg-cover bg-no-repeat`}
     >
       {/* <div className="absolute top-20 -left-4 w-[680px] h-[477px] bg-[#53FFB7] rounded-full filter blur-[138px] opacity-100 rotate-[26deg]"></div> */}
       {/* <div className="absolute -bottom-8 left-1/3 w-[580px] h-[300px] bg-[#24FFF2] rounded-full filter blur-[138px] opacity-100"></div> */}

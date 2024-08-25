@@ -117,7 +117,7 @@ export default function User({ username }: { username: string }) {
   return (
     <>
       {!loading ? (
-        <section className="mt-8 w-full mx-20 md:mx-8">
+        <section className="mt-8 w-full">
           <article className="flex flex-col gap-24">
             {userDetails && (
               <div className="flex flex-row items-center gap-8">

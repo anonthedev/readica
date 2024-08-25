@@ -85,12 +85,12 @@ export default function Dashboard() {
 
   return (
     <libraryContext.Provider value={{ library, setLibrary, getLibrary }}>
-      <main className="mx-20 my-10 md:mx-8">
+      <main className="my-16">
         {/* <Search /> */}
         {!loading ? (
-          <section className="mt-8 w-full">
+          <section className="w-full">
             <article className="flex flex-col gap-5">
-              <h1 className="text-3xl font-bold">My Library</h1>
+              <h1 className="text-xl">My Library</h1>
               <div className="w-full flex flex-row flex-wrap gap-6">
                 {library.length > 0 &&
                   library.map((item) => (
