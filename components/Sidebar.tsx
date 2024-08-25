@@ -1,4 +1,5 @@
 "use client";
+
 import { SignedIn } from "@clerk/nextjs";
 import {
   Menu,
@@ -6,22 +7,21 @@ import {
   Library,
   BookOpen,
   User,
+  LucideProps,
 } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
-  const { user } = useUser();
   const [showFullSidebar, setShowFullSidebar] = useState(false);
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <SignedIn>
       <section
         className={`min-h-screen bg-white flex flex-col py-12 px-4 gap-20 items-start transition-all duration-300 ease-in-out ${
-          showFullSidebar ? 'w-56' : 'w-24'
+          showFullSidebar ? "w-56" : "w-24"
         }`}
       >
         <span className="p-3">
@@ -34,44 +34,74 @@ export default function Sidebar() {
           />
         </span>
         <div className="flex flex-col gap-2 w-full">
-          <Link
-            href={"/discover"}
-            className={`w-fit flex flex-row ${showFullSidebar ? "gap-2" : "gap-0"} items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white ${pathname.slice(1) === "discover" && !pathname.includes("/p") ? "bg-purple text-white" : "text-[#A1A1AA] bg-transparent" }`}
-          >
-            <Telescope size={24} className="min-w-[24px]" />
-            <span className={`overflow-hidden transition-all duration-300 ${showFullSidebar ? 'w-full opacity-100' : 'w-0 opacity-0'}`}>
-              Discover
-            </span>
-          </Link>
-          <Link
-            href={"/dashboard"}
-            className={`w-fit flex flex-row ${showFullSidebar ? "gap-2" : "gap-0"} items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white ${pathname.slice(1) === "dashboard" && !pathname.includes("/p") ? "bg-purple text-white" : "text-[#A1A1AA] bg-transparent" }`}
-          >
-            <Library size={24} className="min-w-[24px]" />
-            <span className={`overflow-hidden transition-all duration-300 ${showFullSidebar ? 'w-full opacity-100' : 'w-0 opacity-0'}`}>
-              Library
-            </span>
-          </Link>
-          <Link
-            href={"#"}
-            className={`w-fit flex flex-row ${showFullSidebar ? "gap-2" : "gap-0"} items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white`}
-          >
-            <BookOpen size={24} className="min-w-[24px]" />
-            <span className={`overflow-hidden transition-all duration-300 ${showFullSidebar ? 'w-full opacity-100' : 'w-0 opacity-0'}`}>
-              Books
-            </span>
-          </Link>
-          <Link
-            href={`/profile`}
-            className={`w-fit flex flex-row ${showFullSidebar ? "gap-2" : "gap-0"} items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white ${pathname.slice(1) === "profile" && !pathname.includes("/p") ? "bg-purple text-white" : "text-[#A1A1AA] bg-transparent" }`}
-          >
-            <User size={24} className="min-w-[24px]" />
-            <span className={`overflow-hidden transition-all duration-300 ${showFullSidebar ? 'w-full opacity-100' : 'w-0 opacity-0'}`}>
-              Profile
-            </span>
-          </Link>
+          <SidebarItem
+            path="discover"
+            pathname={pathname}
+            showFullSidebar={showFullSidebar}
+            Icon={Telescope}
+            label="Discover"
+          />
+          <SidebarItem
+            path="dashboard"
+            pathname={pathname}
+            showFullSidebar={showFullSidebar}
+            Icon={Library}
+            label="Library"
+          />
+          <SidebarItem
+            path="reader"
+            pathname={pathname}
+            showFullSidebar={showFullSidebar}
+            Icon={BookOpen}
+            label="Read"
+          />
+          <SidebarItem
+            path="profile"
+            pathname={pathname}
+            showFullSidebar={showFullSidebar}
+            Icon={User}
+            label="Profile"
+          />
         </div>
       </section>
     </SignedIn>
+  );
+}
+
+function SidebarItem({
+  showFullSidebar,
+  pathname,
+  path,
+  Icon,
+  label,
+}: {
+  showFullSidebar: boolean;
+  pathname: string;
+  path: string;
+  Icon: ForwardRefExoticComponent<
+    Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+  >;
+  label: string;
+}) {
+  return (
+    <Link
+      href={`/${path}`}
+      className={`w-fit flex flex-row ${
+        showFullSidebar ? "gap-2" : "gap-0"
+      } items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white ${
+        pathname.slice(1) === path && !pathname.includes("/p/")
+          ? "bg-purple text-white"
+          : "text-[#A1A1AA] bg-transparent"
+      }`}
+    >
+      <Icon />
+      <span
+        className={`overflow-hidden transition-all duration-300 ${
+          showFullSidebar ? "w-full opacity-100" : "w-0 opacity-0"
+        }`}
+      >
+        {label}
+      </span>
+    </Link>
   );
 }
