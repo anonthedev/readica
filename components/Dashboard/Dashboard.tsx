@@ -5,7 +5,6 @@ import { useAuth } from "@clerk/nextjs";
 
 import { LibraryItemType } from "@/utils/types";
 import { useToast } from "@/components/ui/use-toast";
-import Search from "../NavSearch";
 import { deleteFromLib, getLib, updateLib } from "@/utils/supabaseFunctions";
 import { EllipsisVertical, X } from "lucide-react";
 import {
@@ -26,7 +25,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import axios from "axios";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { turnacateString } from "@/utils/utilFunctions";
 
 export const libraryContext = createContext<any>(null);
@@ -42,10 +40,6 @@ export default function Dashboard() {
     getLibrary();
   }, []);
 
-  // const queryClient = useQueryClient()
-
-  // const {data}: {data: LibraryItemType[]} = useQuery({queryKey: ["get-papers"], queryFn: getLibrary})
-
   async function getLibrary() {
     setLoading(true);
     const token = await getToken({ template: "supabase" });
@@ -60,7 +54,6 @@ export default function Dashboard() {
         },
       });
       if (resp.data.success) {
-        console.log(resp.data);
         const sortedArr = resp.data.library.sort(
           (a: LibraryItemType, b: LibraryItemType) => {
             const dateA = new Date(a.upload_date);
@@ -89,15 +82,24 @@ export default function Dashboard() {
         {/* <Search /> */}
         {!loading ? (
           <section className="w-full">
-            <article className="flex flex-col gap-5">
-              <h1 className="text-xl">My Library</h1>
-              <div className="w-full flex flex-row flex-wrap gap-6">
-                {library.length > 0 &&
-                  library.map((item) => (
+            {library.length > 0 ? (
+              <article className="flex flex-col gap-5">
+                <h1 className="text-xl">My Library</h1>
+                <div className="w-full flex flex-row flex-wrap gap-6">
+                  {library.map((item) => (
                     <LibraryItem item={item} key={item.uuid} />
                   ))}
-              </div>
-            </article>
+                </div>
+              </article>
+            ) : (
+              <article className="flex flex-col gap-2 text-center items-center justify-center h-full w-full">
+                <span>Your library is empty!</span>
+                <span>
+                  <Link className="underline text-purple" href={"/discover"}>Browse</Link> research papers so that
+                  they can appear here
+                </span>
+              </article>
+            )}
           </section>
         ) : (
           <div className="w-full flex items-center justify-center h-[calc(100vh-80px)]">

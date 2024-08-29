@@ -187,7 +187,7 @@ export default function NavSearch() {
   };
 
   return (
-    <section className="flex flex-col relative">
+    <section className="flex flex-col relative lg:hidden">
       <div className="flex flex-row gap-0">
         <Input
           className="w-[300px] rounded-r-none md:w-1/2"
