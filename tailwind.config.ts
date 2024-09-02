@@ -21,9 +21,9 @@ const config = {
       typography: {
         DEFAULT: {
           css: {
-            maxWidth: 'w-1/2', // add required value here
-          }
-        }
+            maxWidth: "w-1/2", // add required value here
+          },
+        },
       },
       colors: {
         border: "hsl(var(--border))",
@@ -59,7 +59,8 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        purple: "#7732E8"
+        purple: "#7732E8",
+        "dark-purple": "#5D24B3",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -78,7 +79,7 @@ const config = {
         "caret-blink": {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
-        }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -99,8 +100,8 @@ const config = {
         // => @media (max-width: 639px) { ... }
       },
       fontFamily: {
-        "inter": ["var(--font-inter)", "sans-serif"]
-      }
+        inter: ["var(--font-inter)", "sans-serif"],
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

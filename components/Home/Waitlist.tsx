@@ -88,7 +88,7 @@ export default function Waitlist() {
               }}
             />
           </div>
-          <Button disabled={loading} type="submit" className="w-full bg-purple hover:bg-purple transition-all duration-300 hover:shadow-xl">
+          <Button disabled={loading} type="submit" className="w-full bg-purple hover:bg-dark-purple transition-all duration-300 hover:shadow-xl">
             {loading ? "Adding..." : "Join Waitlist"}
           </Button>
         </form>
