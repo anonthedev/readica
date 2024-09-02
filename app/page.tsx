@@ -1,10 +1,11 @@
 import Home from "@/components/Home/Home";
-import Navbar from "@/components/Navbar";
+import Waitlist from "@/components/Home/Waitlist";
 
 export default function Page() {
   return (
     <>
-      <Home />
+      {/* <Home /> */}
+      <Waitlist/>
     </>
   );
 }

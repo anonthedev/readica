@@ -1,5 +1,5 @@
 export default function page() {
   return (
-    <div>Discover</div>
+    <div className="w-full">Discover</div>
   )
 }

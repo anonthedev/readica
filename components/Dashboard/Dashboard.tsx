@@ -87,7 +87,7 @@ export default function Dashboard() {
                 <h1 className="text-xl">My Library</h1>
                 <div className="w-full flex flex-row flex-wrap gap-6">
                   {library.map((item) => (
-                    <LibraryItem item={item} key={item.uuid} />
+                    <LibraryItem item={item} getLibrary={getLibrary} key={item.uuid} />
                   ))}
                 </div>
               </article>
@@ -111,15 +111,13 @@ export default function Dashboard() {
   );
 }
 
-function LibraryItem({ item }: { item: LibraryItemType }) {
+export function LibraryItem({ item, getLibrary }: { item: LibraryItemType, getLibrary: Function }) {
   const [readingStatus, setReadingStatus] = useState<
     "Currently Reading" | "Finished Reading" | "Read Later" | null
   >(null);
   const [updatingItem, setUpdatingItem] = useState(false);
   const [tags, setTags] = useState<Set<string>>(new Set([]));
   const [currentTag, setCurrentTag] = useState("");
-
-  const { getLibrary } = useContext(libraryContext);
 
   const { toast } = useToast();
   const { getToken, userId } = useAuth();

@@ -86,7 +86,7 @@ function SidebarItem({
   return (
     <Link
       href={`/${path}`}
-      className={`group flex items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg-purple hover:text-white ${
+      className={`group flex items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg ${
         pathname.slice(1) === path && !pathname.includes("/p/")
           ? "bg-purple text-white"
           : "text-[#A1A1AA] bg-transparent"
@@ -100,8 +100,8 @@ function SidebarItem({
       >
         {label}
       </span>
-      <span className={`absolute left-0 w-full h-full bg-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 ${
-        showFullSidebar ? "" : "w-16"
+      <span className={`absolute left-0 bg-purple w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 ${
+        showFullSidebar ? "" : "w-12"
       }`}></span>
     </Link>
   );
