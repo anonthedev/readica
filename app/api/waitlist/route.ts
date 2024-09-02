@@ -3,18 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const authHeader = req.headers.get("Authorization");
-  const token = authHeader?.split(" ")[1];
 
-  if (!token) {
-    return NextResponse.json({ error: "No token provided" }, { status: 400 });
-  }
-
-  const suapbase = await supabaseClient(token);
+  const suapbase = await supabaseClient(null);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(body.email)) {
-    return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid email format" },
+      { status: 400 }
+    );
   }
 
   if (body.name === "") {
@@ -38,8 +35,9 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     } else {
+      console.log(error);
       return NextResponse.json(
-        { message: "Couldn't add you to the waitlist" },
+        { error: "Couldn't add you to the waitlist" },
         { status: 500 }
       );
     }

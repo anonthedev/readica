@@ -20,20 +20,22 @@ export default function Waitlist() {
   async function addToWaitlist(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    const token = await getToken({ template: "supabase" });
+    // const token = await getToken({ template: "supabase" });
+
+    // console.log(token)
 
     await axios
       .post(
         `/api/waitlist`,
         { email, name },
-        { headers: { Authorization: `Bearer ${token}` } }
+        // { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((resp) => {
         toast({ title: resp.data.message, variant: "success" });
       })
       .catch((error) => {
         console.log(error)
-        toast({ title: error.response.data.error, variant: "destructive" });
+        toast({ title: "Something went wrong", description: error.response.data.error, variant: "destructive" });
       })
       .finally(() => {
         setLoading(false);
