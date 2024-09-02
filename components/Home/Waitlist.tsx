@@ -43,7 +43,7 @@ export default function Waitlist() {
   }
   return (
     <main
-      className="relative flex flex-col gap-6 overflow-x-hidden h-dvh items-center justify-center font-inter"
+      className="relative w-full flex flex-col gap-6 overflow-x-hidden h-dvh items-center justify-center font-inter"
       style={{
         backgroundImage: `url(${bg.src})`,
         backgroundColor: "black",
@@ -52,7 +52,7 @@ export default function Waitlist() {
       }}
     >
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <section className="relative z-10 w-[calc(400px+2rem)] flex flex-col gap-10 p-8 rounded-2xl bg-white text-white bg-opacity-10 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-[0px_4px_16px_0px_#FFFFFF14]">
+      <section className="relative z-10 w-[calc(400px+2rem)] md:w-[calc(100%-50px)] flex flex-col gap-10 p-8 rounded-2xl bg-white text-white bg-opacity-10 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-[0px_4px_16px_0px_#FFFFFF14]">
         <div className="flex flex-col gap-3 w-full items-center justify-center text-center">
           <h1 className="text-[32px] ">Get Early Access to Readica</h1>
           <p>
