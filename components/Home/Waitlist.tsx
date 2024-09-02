@@ -27,15 +27,19 @@ export default function Waitlist() {
     await axios
       .post(
         `/api/waitlist`,
-        { email, name },
+        { email, name }
         // { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((resp) => {
         toast({ title: resp.data.message, variant: "success" });
       })
       .catch((error) => {
-        console.log(error)
-        toast({ title: "Something went wrong", description: error.response.data.error, variant: "destructive" });
+        console.log(error);
+        toast({
+          title: "Something went wrong",
+          description: error.response.data.error,
+          variant: "destructive",
+        });
       })
       .finally(() => {
         setLoading(false);
@@ -52,9 +56,9 @@ export default function Waitlist() {
       }}
     >
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <section className="relative z-10 w-[calc(400px+2rem)] md:w-[calc(100%-50px)] flex flex-col gap-10 p-8 rounded-2xl bg-white text-white bg-opacity-10 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-[0px_4px_16px_0px_#FFFFFF14]">
+      <section className="relative z-10 max-w-[50ch] md:w-[calc(100%-50px)] flex flex-col gap-10 p-8 rounded-2xl bg-white text-white bg-opacity-10 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-[0px_4px_16px_0px_#FFFFFF14]">
         <div className="flex flex-col gap-3 w-full items-center justify-center text-center">
-          <h1 className="text-[32px] ">Get Early Access to Readica</h1>
+          <h1 className="text-[32px]">Get Early Access to Readica</h1>
           <p>
             Readica is still a wip, but you can sign up to be the first to get
             access to Readica!
@@ -70,7 +74,7 @@ export default function Waitlist() {
             <Label>Name</Label>
             <Input
               placeholder="Enter your name"
-              className="bg-white text-white bg-opacity-20 border-none focus:border-none focus:outline-1 focus:outline-white foucs:outline-bold placeholder:text-white"
+              className="bg-white text-white bg-opacity-20 border-none focus-visible:ring-[#FFFFFFA3]  placeholder:text-white"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -81,14 +85,18 @@ export default function Waitlist() {
             <Label>Email</Label>
             <Input
               placeholder="Enter your email"
-              className="bg-white text-white bg-opacity-20 border-none focus:outline-1 focus:outline-white foucs:outline-bold placeholder:text-white"
+              className="bg-white text-white bg-opacity-20 border-none focus-visible:ring-[#FFFFFFA3] placeholder:text-white"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
               }}
             />
           </div>
-          <Button disabled={loading} type="submit" className="w-full bg-purple hover:bg-dark-purple transition-all duration-300 hover:shadow-xl">
+          <Button
+            disabled={loading}
+            type="submit"
+            className="w-full bg-purple hover:bg-dark-purple transition-all duration-300 hover:shadow-xl"
+          >
             {loading ? "Adding..." : "Join Waitlist"}
           </Button>
         </form>
