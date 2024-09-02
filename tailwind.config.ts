@@ -98,6 +98,9 @@ const config = {
         sm: { max: "639px" },
         // => @media (max-width: 639px) { ... }
       },
+      fontFamily: {
+        "inter": ["var(--font-inter)", "sans-serif"]
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],

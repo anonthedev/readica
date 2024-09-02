@@ -9,7 +9,7 @@ import NavSearch from "@/components/NavSearch";
 export default function Navbar() {
   const { isSignedIn } = useUser();
   return (
-    <nav className="py-12 flex flex-row items-center justify-between bg-transparent w-full">
+    <nav className="py-12 px-8 flex flex-row items-center justify-between bg-transparent w-full">
       <Link
         href={isSignedIn ? "/dashboard" : "/"}
         className="text-4xl font-bold"

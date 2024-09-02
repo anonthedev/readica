@@ -100,7 +100,7 @@ function SidebarItem({
       >
         {label}
       </span>
-      <span className={`absolute left-0 bg-purple w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 ${
+      <span className={`absolute left-0 bg-purple h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 ${
         showFullSidebar ? "" : "w-12"
       }`}></span>
     </Link>
