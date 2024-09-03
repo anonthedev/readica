@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import bg from "@/resources/images/home-bg.png";
+import waitlistText from "@/resources/images/wailist-text.svg"
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@clerk/nextjs";
 import { FormEvent, useState } from "react";
@@ -47,7 +48,7 @@ export default function Waitlist() {
   }
   return (
     <main
-      className="relative w-full flex flex-col gap-6 overflow-x-hidden h-dvh items-center justify-center font-inter"
+      className="relative w-full flex flex-col gap-6 overflow-x-hidden h-dvh items-center justify-center font-inter overflow-y-hidden md:overflow-y-auto"
       style={{
         backgroundImage: `url(${bg.src})`,
         backgroundColor: "black",
@@ -119,6 +120,7 @@ export default function Waitlist() {
           Lakshay
         </a>
       </span>
+      <img src={waitlistText.src} className="absolute -bottom-32 lg:hidden" />
     </main>
   );
 }
