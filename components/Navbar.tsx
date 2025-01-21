@@ -1,13 +1,163 @@
 "use client";
-
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import NavSearch from "@/components/NavSearch";
+import axios from "axios";
+import { useRef, useState } from "react";
+import { useToast } from "./ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { extractPDFMetadata } from "@/utils/utilFunctions";
+import { LibraryItemType, PDFMetadata, UploadItem } from "@/utils/types";
+import { addToLib } from "@/utils/supabaseFunctions";
+import { useAuth } from "@clerk/nextjs";
 
 export default function Navbar() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [metadata, setMetadata] = useState<PDFMetadata | null>(null);
+  const { toast } = useToast();
+  const { getToken, userId } = useAuth();
+
+  async function handleAddToLib(paperDetails: UploadItem) {
+    toast({ title: "🔘 Adding..." });
+    const token = await getToken({ template: "supabase" });
+    if (!token || !userId) {
+      toast({ title: "Please login/signup first", variant: "destructive" });
+      return;
+    }
+
+    const result = await axios.post(
+      `/api/library?userId=${userId}`,
+      {
+        title: paperDetails.title,
+        description: paperDetails.description,
+        authors: paperDetails.authors,
+        file_id: paperDetails.pdf_link,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (result.data.success) {
+      toast({
+        title: "Paper added to library successfully",
+        variant: "success",
+      });
+    } else {
+      if (result.data.code === "23505") {
+        toast({
+          title: "Paper is already in your library",
+          variant: "destructive",
+        });
+      } else {
+        await axios
+          .delete(`/api/backblaze?fileId=${paperDetails.file_id}`)
+          .then((resp) => {
+            toast({
+              title: "Something went wrong",
+              // description: "result.data.message || result.data.error",
+              variant: "destructive",
+            });
+          });
+      }
+    }
+  }
+
+  async function handlePaperUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      toast({ title: "No Title Selected", variant: "destructive" });
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      toast({ title: "Only PDF files are supported", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File size should be less than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const pdfMetadata = await extractPDFMetadata(file);
+    console.log(pdfMetadata);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setIsUploading(true);
+
+    try {
+      await axios
+        .post("/api/backblaze", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 1)
+            );
+            console.log(`Upload Progress: ${percentCompleted}%`);
+          },
+        })
+        .then((resp) => {
+          console.log("Upload Response:", resp.data);
+          // toast({ title: "Paper uploaded successfully", variant: "success" });
+
+          const paperDetails = { ...pdfMetadata, file_id: resp.data.fileId };
+
+          console.log(paperDetails);
+          //@ts-expect-error
+          handleAddToLib(paperDetails);
+        });
+
+      // handleAddToLib(metadata!)
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error: any) {
+      console.error("Upload Error:", error);
+      console.error("Error Response:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to upload paper";
+
+      toast({ title: errorMessage, variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  function openFileInput() {
+    fileInputRef.current?.click();
+  }
+
   const { isSignedIn } = useUser();
+
   return (
     <nav className="py-12 px-8 flex flex-row items-center justify-between bg-transparent w-full">
       <Link
@@ -19,7 +169,48 @@ export default function Navbar() {
       <div className="flex flex-row items-center justify-center gap-12">
         <div className="flex flex-row gap-8">
           <NavSearch />
-          <Button className="bg-purple">Upload Paper</Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="application/pdf"
+            onChange={handlePaperUpload}
+          />
+          <Button
+            className="bg-purple hover:bg-dark-purple"
+            onClick={openFileInput}
+            disabled={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Upload Paper"}
+          </Button>
+          {/* <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-purple hover:bg-dark-purple"
+                // onClick={openFileInput}
+                // disabled={isUploading}
+              >
+                {isUploading ? "Uploading..." : "Upload Paper"}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit profile</DialogTitle>
+                <DialogDescription>
+                  Make changes to your profile here. Click save when you're
+                  done.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog> */}
         </div>
         <SignedIn>
           <UserButton />

@@ -36,7 +36,7 @@ export default function RootLayout({
             <main className="flex flex-row w-screen overflow-y-hidden">
               <Sidebar />
               <section className="flex flex-col flex-grow max-h-screen overflow-y-auto">
-                {/* <Navbar /> */}
+                <Navbar />
                 {children}
               </section>
             </main>

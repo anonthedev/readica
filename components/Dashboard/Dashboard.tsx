@@ -230,12 +230,12 @@ export function LibraryItem({ item, getLibrary }: { item: LibraryItemType, getLi
                 : item.authors.join(", ")}
             </p>
           </div>
-          <p
+          {item.description && <p
             className="font-[400] text-xs max-w-[40ch] text-ellipsis"
             title={item.description}
           >
             {turnacateString(item.description, 65)}
-          </p>
+          </p>}
         </div>
         <p className="flex flex-row gap-1">
           {item.tags &&

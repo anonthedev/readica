@@ -14,6 +14,7 @@ export async function addToLib(
         description: paperDetails.description,
         authors: paperDetails.authors,
         pdf_link: paperDetails.pdf_link,
+        file_id: paperDetails.file_id,
       },
       {
         headers: {
