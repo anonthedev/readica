@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { IHighlight } from "react-pdf-highlighter";
+import PDFViewer2 from "@/components/Reader/PDFViewer2";
 
 export default function Page({ params }: { params: { uuid: string } }) {
   const { getToken, userId } = useAuth();
@@ -67,13 +68,13 @@ export default function Page({ params }: { params: { uuid: string } }) {
   }, []);
 
   return (
-    <main className="w-screen flex flex-row justify-center h-[calc(100vh-80px)]">
+  <main className="w-[calc(100vw-100px)] flex flex-row justify-center h-[calc(100vh-80px)]">
       {!gettingData ? (
         <>
-          <PDFViewer
-            serverHighlights={highlights}
+          <PDFViewer2
+            // serverHighlights={highlights}
             url={pdfURL}
-            uuid={params.uuid}
+            // uuid={params.uuid}
           />
           <Notes serverNotes={notes} uuid={params.uuid} />
         </>

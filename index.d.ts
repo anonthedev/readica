@@ -1,1 +1,1 @@
-// declare module "@/utils/types.ts"
+declare module "pdfjs-dist/build/pdf"

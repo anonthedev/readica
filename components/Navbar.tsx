@@ -16,16 +16,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { extractPDFMetadata } from "@/utils/utilFunctions";
 import { LibraryItemType, PDFMetadata, UploadItem } from "@/utils/types";
 import { addToLib } from "@/utils/supabaseFunctions";
 import { useAuth } from "@clerk/nextjs";
+import { CloudUpload } from "lucide-react";
 
 export default function Navbar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [autoMeta, setAutoMeta] = useState(true);
   const [metadata, setMetadata] = useState<PDFMetadata | null>(null);
   const { toast } = useToast();
   const { getToken, userId } = useAuth();
@@ -176,41 +179,60 @@ export default function Navbar() {
             accept="application/pdf"
             onChange={handlePaperUpload}
           />
-          <Button
-            className="bg-purple hover:bg-dark-purple"
-            onClick={openFileInput}
-            disabled={isUploading}
-          >
-            {isUploading ? "Uploading..." : "Upload Paper"}
-          </Button>
-          {/* <Dialog>
+          <Dialog>
             <DialogTrigger asChild>
               <Button
+                disabled={isUploading}
                 className="bg-purple hover:bg-dark-purple"
-                // onClick={openFileInput}
-                // disabled={isUploading}
               >
                 {isUploading ? "Uploading..." : "Upload Paper"}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] rounded-lg">
               <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
-                <DialogDescription>
-                  Make changes to your profile here. Click save when you're
-                  done.
+                <DialogTitle className="mb-4">Upload Paper</DialogTitle>
+                <DialogDescription className="flex flex-col gap-4">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="application/pdf"
+                    onChange={handlePaperUpload}
+                  />
+                  <div
+                    className="flex flex-col items-center justify-center gap-4 border-dotted border-2 border-purple rounded-lg p-8 cursor-pointer bg-purple/10 text-dark-purple"
+                    onClick={openFileInput}
+                  >
+                    <CloudUpload />
+                    <p>Click to upload a file from your computer.</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="auto-meta"
+                      disabled={isUploading}
+                      checked={autoMeta}
+                      onCheckedChange={() => {
+                        setAutoMeta(!autoMeta);
+                      }}
+                    />
+                    <label
+                      htmlFor="auto-meta"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Get Title, Authors, etc. from the paper automatically.
+                    </label>
+                  </div>
+
+                  {/* <div>
+                    <Input placeholder="Title" />
+                  </div> */}
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  
-                </div>
-              </div>
               <DialogFooter>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="bg-purple hover:bg-dark-purple">Upload</Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog> */}
+          </Dialog>
         </div>
         <SignedIn>
           <UserButton />
