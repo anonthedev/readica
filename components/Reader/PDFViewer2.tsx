@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { MinusCircle, PlusCircle, RotateCcw } from 'lucide-react';
+import { MinusCircle, PlusCircle, RotateCcw, Loader2 } from 'lucide-react';
 
 interface PDFViewerProps {
     url: string;
@@ -16,14 +16,18 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
     const [numPages, setNumPages] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [scale, setScale] = useState<number>(0.5);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadingProgress, setLoadingProgress] = useState<{ loaded: number; total: number }>({ loaded: 0, total: 0 });
     const renderTasks = useRef<RenderTask[]>([]);
 
-    const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3));
-    const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.25));
+    const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 3));
+    const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.25));
     const handleResetZoom = () => setScale(0.5);
 
     useEffect(() => {
         let isCancelled = false;
+        setIsLoading(true);
+        setLoadingProgress({ loaded: 0, total: 0 });
 
         async function renderPages() {
             const pdfJS = await import('pdfjs-dist/build/pdf');
@@ -31,7 +35,16 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                 window.location.origin + '/pdf.worker.min.mjs';
 
             try {
-                const pdf = await pdfJS.getDocument(url).promise;
+                const loadingTask = pdfJS.getDocument(url);
+                //@ts-expect-error
+                loadingTask.onProgress = (progress) => {
+                    setLoadingProgress({
+                        loaded: progress.loaded,
+                        total: progress.total
+                    });
+                };
+
+                const pdf = await loadingTask.promise;
                 if (isCancelled) return;
 
                 setNumPages(pdf.numPages);
@@ -101,7 +114,10 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                     try {
                         await renderTask.promise;
                         if (!isCancelled) {
-                            console.log(`Page ${pageNum} rendered at ${desiredDPI} DPI`);
+                            setLoadingProgress(prev => ({
+                                ...prev,
+                                loaded: pageNum
+                            }));
                         }
                     } catch (error: any) {
                         if (error.name === 'RenderingCancelledException') {
@@ -111,8 +127,10 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                         }
                     }
                 }
+                setIsLoading(false);
             } catch (error) {
                 console.error('Error loading PDF:', error);
+                setIsLoading(false);
             }
         }
 
@@ -131,12 +149,13 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
 
     return (
         <div className="flex flex-col h-full w-1/2">
-            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-t-lg">
+            <div className="flex items-center justify-between bg-gray-100 p-4">
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={handleZoomOut}
                         className="p-2 hover:bg-gray-200 rounded-full"
                         aria-label="Zoom out"
+                        disabled={isLoading}
                     >
                         <MinusCircle className="w-5 h-5" />
                     </button>
@@ -144,6 +163,7 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                         onClick={handleResetZoom}
                         className="p-2 hover:bg-gray-200 rounded-full"
                         aria-label="Reset zoom"
+                        disabled={isLoading}
                     >
                         <RotateCcw className="w-5 h-5" />
                     </button>
@@ -151,6 +171,7 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                         onClick={handleZoomIn}
                         className="p-2 hover:bg-gray-200 rounded-full"
                         aria-label="Zoom in"
+                        disabled={isLoading}
                     >
                         <PlusCircle className="w-5 h-5" />
                     </button>
@@ -167,6 +188,7 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                             scrollToPage(page);
                         }}
                         className="p-1 border rounded"
+                        disabled={isLoading}
                     >
                         {[...Array(numPages)].map((_, i) => (
                             <option key={i + 1} value={i + 1}>
@@ -180,14 +202,28 @@ export default function PDFViewer2({ url }: PDFViewerProps) {
                 </div>
             </div>
 
-            <div
-                ref={containerRef}
-                className="flex-1 overflow-y-auto p-4 bg-gray-50"
-                style={{
-                    WebkitFontSmoothing: 'subpixel-antialiased',
-                    textRendering: 'optimizeLegibility'
-                }}
-            />
+            <div className="relative flex-1 h-full">
+                {isLoading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-50">
+                        <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-2" />
+                        <div className="text-sm text-gray-600">
+                            {loadingProgress.total ? (
+                                `Loading ${Math.round((loadingProgress.loaded / loadingProgress.total) * 100)}%`
+                            ) : (
+                                'Loading PDF...'
+                            )}
+                        </div>
+                    </div>
+                )}
+                <div
+                    ref={containerRef}
+                    className="h-full overflow-y-auto bg-gray-50"
+                    style={{
+                        WebkitFontSmoothing: 'subpixel-antialiased',
+                        textRendering: 'optimizeLegibility'
+                    }}
+                />
+            </div>
         </div>
     );
 }

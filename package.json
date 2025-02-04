@@ -41,7 +41,7 @@
     "react-dom": "^18",
     "react-pdf-highlighter": "^7.0.0",
     "sass": "^1.77.8",
-    "tailwind-merge": "^2.3.0",
+    "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
     "vaul": "^0.9.1"

@@ -23,13 +23,19 @@ import { extractPDFMetadata } from "@/utils/utilFunctions";
 import { LibraryItemType, PDFMetadata, UploadItem } from "@/utils/types";
 import { addToLib } from "@/utils/supabaseFunctions";
 import { useAuth } from "@clerk/nextjs";
-import { CloudUpload } from "lucide-react";
+import { ChevronDown, ChevronUp, CloudUpload, X } from "lucide-react";
+import { Textarea } from "./ui/textarea";
+import MultiInput from "./ui/multi-input";
 
 export default function Navbar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [autoMeta, setAutoMeta] = useState(true);
-  const [metadata, setMetadata] = useState<PDFMetadata | null>(null);
+  const [tags, setTags] = useState<Set<string>>(new Set([]));
+  const [currentTag, setCurrentTag] = useState("");
+  const [authors, setAuthors] = useState<Set<string>>(new Set([]));
+  const [currentAuthor, setCurrentAuthor] = useState("");
+  const [showMannualD, setShowMannualD] = useState(true);
   const { toast } = useToast();
   const { getToken, userId } = useAuth();
 
@@ -162,7 +168,7 @@ export default function Navbar() {
   const { isSignedIn } = useUser();
 
   return (
-    <nav className="py-12 px-8 flex flex-row items-center justify-between bg-transparent w-full">
+    <nav className="py-8 px-8 flex flex-row items-center justify-between bg-transparent w-full">
       <Link
         href={isSignedIn ? "/dashboard" : "/"}
         className="text-4xl font-bold"
@@ -223,13 +229,96 @@ export default function Navbar() {
                     </label>
                   </div>
 
-                  {/* <div>
-                    <Input placeholder="Title" />
-                  </div> */}
+                  <div className="flex flex-col gap-3">
+                    <div
+                      className="flex flex-row gap-2 items-center hover:cursor-pointer"
+                      onClick={() => {
+                        setShowMannualD(!showMannualD);
+                      }}
+                    >
+                      {showMannualD ? <ChevronUp /> : <ChevronDown />}
+                      Fill the details mannually.
+                    </div>
+                    {showMannualD && (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-row gap-2 w-full">
+                          <Input placeholder="Title" className="w-1/2" />
+                          <div className="w-1/2 flex flex-col gap-1">
+                            <MultiInput
+                              setInputs={setAuthors}
+                              currentInput={currentAuthor}
+                              setCurrentInput={setCurrentAuthor}
+                            />
+                            <span className="flex flex-row gap-1 flex-wrap">
+                              {authors &&
+                                authors.size > 0 &&
+                                Array.from(authors).map((author) => (
+                                  <span
+                                    key={author}
+                                    className="flex flex-row gap-1 items-center justify-center w-fit bg-dark-purple/10 text-xs rounded-md p-1 text-purple text-center"
+                                  >
+                                    <p>{author}</p>
+
+                                    <X
+                                      size={12}
+                                      className="cursor-pointer"
+                                      onClick={() => {
+                                        setAuthors((prevAuthors) => {
+                                          const newAuthors = new Set(prevAuthors);
+                                          newAuthors.delete(author);
+                                          return newAuthors;
+                                        });
+                                      }}
+                                    />
+                                  </span>
+                                ))}
+                            </span>
+                          </div>
+                        </div>
+                        <Textarea placeholder="Description" />
+                        <div className="flex flex-col gap-1">
+                          <MultiInput
+                            setInputs={setTags}
+                            currentInput={currentTag}
+                            setCurrentInput={setCurrentTag}
+                          />
+                          <span className="flex flex-row gap-2 flex-wrap">
+                            {tags &&
+                              tags.size > 0 &&
+                              Array.from(tags).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="flex flex-row gap-1 items-center justify-center w-fit bg-dark-purple/10 text-xs rounded-md p-2 text-purple text-center"
+                                >
+                                  <p>{tag}</p>
+
+                                  <X
+                                    size={12}
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                      setTags((prevTags) => {
+                                        const newTags = new Set(prevTags);
+                                        newTags.delete(tag);
+                                        return newTags;
+                                      });
+                                    }}
+                                  />
+                                </span>
+                              ))}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button type="submit" className="bg-purple hover:bg-dark-purple">Upload</Button>
+                <Button
+                  type="submit"
+                  className="bg-purple hover:bg-dark-purple self-end"
+                >
+                  Upload
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

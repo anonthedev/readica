@@ -87,7 +87,7 @@ function SidebarItem({
     <Link
       href={`/${path}`}
       className={`group flex items-center text-[16px] p-4 rounded-lg duration-300 transition-all text-[#A1A1AA] hover:bg ${
-        pathname.slice(1) === path && !pathname.includes("/p/")
+        pathname.slice(1).includes(path) && !pathname.includes("/p/")
           ? "bg-purple text-white"
           : "text-[#A1A1AA] bg-transparent"
       }`}
