@@ -59,7 +59,6 @@ const items = [
 export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname()
-  console.log(pathname)
 
   return (
     <Sidebar collapsible="icon" variant="floating">

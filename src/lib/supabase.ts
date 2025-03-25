@@ -1,5 +1,13 @@
+import { createClient } from "@supabase/supabase-js";
 
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = 'https://mktpqsgqflwenwhijsjm.supabase.co'
-const supabaseKey = process.env.SUPABASE_KEY!
-export const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = "https://mktpqsgqflwenwhijsjm.supabase.co";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+// console.log(supabaseKey)
+export const supabaseClient = (token: any) =>
+  createClient(supabaseUrl, supabaseKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  });
