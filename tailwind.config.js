@@ -75,6 +75,16 @@ module.exports = {
       fontFamily: {
         inter: ["var(--font-inter)", "sans-serif"],
       },
+      keyframes: {
+        customSpin: {
+          "0%": { transform: "scale(0.8) rotate(0deg)" }, // Shrink and start rotation
+          "50%": { transform: "scale(1) rotate(180deg)" }, // Midway point
+          "100%": { transform: "scale(1) rotate(360deg)" }, // Return to normal size
+        },
+      },
+      animation: {
+        "custom-spin": "customSpin 0.4s ease-in-out", // Faster spin with easing
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

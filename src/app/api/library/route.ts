@@ -124,7 +124,7 @@ export async function PUT(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("library")
-    .update({tags: ["AGI"]})
+    .update(dataToUpdate)
     .eq("uuid", uuid)
     .select();
 

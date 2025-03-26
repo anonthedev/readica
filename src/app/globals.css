@@ -111,6 +111,17 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --font-inter: var(--font-inter);
+
+  --animate-custom-spin: custom-spin 0.4s ease-in-out;
+
+  @keyframes custom-spin {
+    0%{
+      transform: scale(0.6) rotate(0deg)
+    }
+    100%{
+      transform: scale(1) rotate(360deg)
+    }
+  }
 }
 
 @layer base {
