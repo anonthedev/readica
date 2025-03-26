@@ -9,47 +9,46 @@ import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  // DropdownMenuLabel,
-  // DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { EllipsisVertical, Plus, RefreshCcw, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { arxivSearch } from "@/lib/searchFunctions";
-import { LibraryItemType, SearchedPaperDetails } from "@/types/PaperTypes";
+
 import MultiInput from "../ui/multi-input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
-import { turnacateString } from "@/lib/utils";
-import Link from "next/link";
+import LibraryItem from "@/components/Library/LibraryItem";
+import { LibraryItemType } from "@/types/PaperTypes";
 
 export default function Library() {
   const [library, setLibrary] = useState<any[]>([]);
-  // const [paperDetails, setPaperDetails] =
-  //   useState<SearchedPaperDetails | null>();
   const [authors, setAuthors] = useState<Set<string>>(new Set());
   const [currentAuthor, setCurrentAuthor] = useState("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [pdfLink, setPdfLink] = useState("");
   const [paperURL, setPaperURL] = useState("");
-  // const [isRotating, setIsRotating] = useState(false);
+  const [allTags, setAllTags] = useState<Set<string>>(new Set());
+
+  const [selectedTag, setSelectedTag] = useState("");
 
   const [uploadPaperBtnDisabled, setUploadPaperBtnDisabled] =
-    useState<Boolean>(true);
+    useState<boolean>(true);
 
-  const [loadingPapers, setLoadingPapers] = useState<Boolean>(true);
+  const [loadingPapers, setLoadingPapers] = useState<boolean>(true);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -88,6 +87,13 @@ export default function Library() {
       );
       if (resp.status === 200) {
         setLibrary(resp.data);
+        resp.data.map((item: LibraryItemType) => {
+          if (item.tags && item.tags.length > 0) {
+            item.tags.forEach((tag) => {
+              setAllTags((prevTags) => new Set(prevTags).add(tag));
+            });
+          }
+        });
       }
     } catch (e) {
       console.log(e);
@@ -97,7 +103,6 @@ export default function Library() {
   }
 
   async function getPaperDetails() {
-    // setLoadingDetails(true);
     try {
       const resp = await arxivSearch(paperURL);
       if (resp.data) {
@@ -107,7 +112,6 @@ export default function Library() {
         setAuthors(authors as Set<string>);
         setPdfLink(resp.data[0].pdf_link);
       }
-      // setLoadingDetails(false);
     } catch (e) {
       console.log(e);
     }
@@ -139,6 +143,10 @@ export default function Library() {
       );
       console.log("Paper Added Successfully");
       toast.success("Paper Added Successfully");
+      // setTitle("");
+      // setDescription("");
+      // setAuthors(new Set());
+      // setPdfLink("");
     } catch (error: unknown) {
       console.log(error);
       if (axios.isAxiosError(error)) {
@@ -166,18 +174,20 @@ export default function Library() {
 
   return (
     <div className="pr-10 py-20 w-full flex flex-col gap-10">
-      <div className="flex flex-row justify-between w-full">
+      <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">
           <div
-            className="cursor-pointer hover:bg-accent p-1.5 rounded-md duration-300"
+            className="cursor-pointer hover:bg-accent p-1.5 rounded-md duration-200"
             onClick={() => {
               getLib();
             }}
           >
             <RefreshCcw
               size={20}
-              className={`${loadingPapers ? "animate-custom-spin" : ""}`}
+              className={`${
+                loadingPapers ? "animate-custom-spin" : ""
+              } text-gray-500 hover:text-gray-700 duration-200`}
             />
           </div>
           <Dialog>
@@ -188,7 +198,7 @@ export default function Library() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Paper</DialogTitle>
-                <DialogDescription className="my-2 flex flex-col gap-2">
+                <div className="my-2 flex flex-col gap-2">
                   <div>
                     <Input
                       value={paperURL}
@@ -271,7 +281,7 @@ export default function Library() {
                       />
                     </div>
                   </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               <DialogFooter>
                 <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
@@ -283,177 +293,55 @@ export default function Library() {
         </div>
       </div>
       {!loadingPapers ? (
-        <div className="w-full flex flex-row flex-wrap gap-6">
-          {library.length > 0 ? (
-            library.map((libItem) => (
-              <LibraryItem item={libItem} key={libItem.uuid} />
-            ))
-          ) : (
-            <div>No items in your library</div>
-          )}
-        </div>
+        <section className="flex flex-col gap-4">
+          <div>
+            {allTags && (
+              <Select
+                onValueChange={(e) => {
+                  if (e !== "all") {
+                    setSelectedTag(e);
+                  } else {
+                    setSelectedTag("");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {Array.from(allTags).length > 0 &&
+                    Array.from(allTags).map((tag) => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  <SelectItem value="all">All</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="w-full flex flex-row flex-wrap gap-6 flex-grow overflow-y-auto">
+            {library.length > 0 ? (
+              library
+                .filter((item: LibraryItemType) => {
+                  if (selectedTag) {
+                    return item.tags?.includes(selectedTag);
+                  } else {
+                    return item;
+                  }
+                })
+                .map((libItem) => (
+                  <LibraryItem item={libItem} key={libItem.uuid} />
+                ))
+            ) : (
+              <div>No items in your library</div>
+            )}
+          </div>
+        </section>
       ) : (
         <div>Loading....</div>
       )}
-    </div>
-  );
-}
-
-function LibraryItem({ item }: { item: LibraryItemType }) {
-  const [tags, setTags] = useState<Set<string>>(new Set());
-  const [currentTag, setCurrentTag] = useState("");
-  const [updatingItem, setUpdatingItem] = useState<Boolean>(false);
-
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    if (item.tags) {
-      setTags(new Set(item.tags));
-      console.log(item.tags);
-    }
-  }, []);
-
-  async function updateItemTags(item: LibraryItemType) {
-    setUpdatingItem(true);
-    try {
-      const resp = await axios.put(
-        `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
-          session?.user.id
-        }`,
-
-        { tags: Array.from(tags) },
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
-      );
-      toast.success("Tags Updated");
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.log(e.response?.data);
-        toast.error("Something went wrong");
-      } else {
-        toast.error("Something went wrong");
-      }
-    } finally {
-      setUpdatingItem(false);
-    }
-  }
-
-  return (
-    <div
-      key={item.uuid}
-      className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
-    >
-      <Link href={"#"}>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="font-medium text-lg max-w-[25ch]">
-              {turnacateString(item.title, 45)}
-            </h2>
-            <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
-              {item.authors.length > 2
-                ? item.authors.slice(0, 2).join(", ") +
-                  `, +${item.authors.length - 2}`
-                : item.authors.join(", ")}
-            </p>
-          </div>
-          {item.description && (
-            <p
-              className="font-[400] text-xs max-w-[40ch] text-ellipsis"
-              title={item.description}
-            >
-              {turnacateString(item.description, 65)}
-            </p>
-          )}
-          <p className="flex flex-row gap-1">
-            {item.tags &&
-              item.tags.length !== 0 &&
-              item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className=" text-xs bg-[#78787814] rounded-md py-1 px-2 text-[#646464] text-center"
-                >
-                  {tag}
-                </span>
-              ))}
-          </p>
-        </div>
-      </Link>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <EllipsisVertical />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
-            <Dialog>
-              <DialogTrigger asChild onClick={() => {}}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTags(new Set(item.tags));
-                  }}
-                  className="w-full text-left"
-                >
-                  Edit Tags
-                </button>
-              </DialogTrigger>
-              <DialogContent onKeyDown={(e) => e.stopPropagation()}>
-                <DialogHeader className="flex flex-col gap-2">
-                  <DialogTitle title={`Set reading status of ${item.title}`}>
-                    Set tags for {turnacateString(item.title, 30)}
-                  </DialogTitle>
-                  <DialogDescription className="flex flex-col gap-2">
-                    <span>Maximum of 5 tags can be set to a paper.</span>
-                    <span className="flex flex-row gap-2 flex-wrap">
-                      {tags &&
-                        tags.size > 0 &&
-                        Array.from(tags).map((tag) => (
-                          <span
-                            key={tag}
-                            className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
-                          >
-                            <span>{tag}</span>
-
-                            <X
-                              size={12}
-                              className="cursor-pointer"
-                              onClick={() => {
-                                setTags((prevTags) => {
-                                  const newTags = new Set(prevTags);
-                                  newTags.delete(tag);
-                                  return newTags;
-                                });
-                              }}
-                            />
-                          </span>
-                        ))}
-                    </span>
-                    <MultiInput
-                      inputs={tags}
-                      setCurrentInput={setCurrentTag}
-                      currentInput={currentTag}
-                      setInputs={setTags}
-                      maxInputs={5}
-                      placeholder="Press Enter after typing a tag"
-                    />
-                    <Button
-                      className="w-fit self-center"
-                      disabled={updatingItem}
-                      onClick={() => {
-                        updateItemTags(item);
-                      }}
-                    >
-                      {updatingItem ? "Updating..." : "Save"}
-                    </Button>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }
