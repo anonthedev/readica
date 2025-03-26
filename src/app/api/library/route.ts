@@ -63,7 +63,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   const token = authHeader.split(" ")[1];
 
-    const supabase = await supabaseClient(token);
+  const supabase = await supabaseClient(token);
 
   const { data, error } = await supabase
     .from("library")
@@ -80,94 +80,99 @@ export async function POST(req: NextRequest, res: NextResponse) {
     .select();
 
   if (data) {
-    return NextResponse.json(data, {status: 200});
+    return NextResponse.json(data, { status: 200 });
   } else {
     console.log(error);
     if (error.code === "23505") {
-      return NextResponse.json({
-        error: "Paper is already in your library",
-        code: "23505",
-      }, {status: 409});
+      return NextResponse.json(
+        {
+          error: "Paper is already in your library",
+          code: "23505",
+        },
+        { status: 409 }
+      );
     } else {
-      return NextResponse.json({
-        error: "Couldn't add paper to your library",
-        message: error,
-      }, {status: 500});
+      return NextResponse.json(
+        {
+          error: "Couldn't add paper to your library",
+          message: error,
+        },
+        { status: 500 }
+      );
     }
   }
 }
 
-// export async function PUT(req: NextRequest) {
-//   const userId = req.nextUrl.searchParams.get("userId");
-//   const uuid = req.nextUrl.searchParams.get("uuid");
-//   const authHeader = req.headers.get("Authorization");
-//   // console.log(req)
-//   const body = await req.json();
+export async function PUT(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get("userId");
+  const uuid = req.nextUrl.searchParams.get("uuid");
+  const authHeader = req.headers.get("Authorization");
+  console.log(uuid)
+  const body = await req.json();
 
-//   const dataToUpdate = body;
-//   console.log(body);
+  const dataToUpdate = body;
+  console.log(dataToUpdate);
 
-//   if (!userId || !authHeader) {
-//     return NextResponse.json(
-//       { message: "Missing userId or token" },
-//       { status: 400 }
-//     );
-//   }
-//   const token = authHeader.split(" ")[1];
-//   // console.log(token)
-//   //   const supabase = await supabaseClient(token);
+  if (!userId || !authHeader) {
+    return NextResponse.json(
+      { message: "Missing userId or token" },
+      { status: 400 }
+    );
+  }
+  const token = authHeader.split(" ")[1];
+  const supabase = await supabaseClient(token);
 
-//   const { data, error } = await supabase
-//     .from("library")
-//     .update(dataToUpdate)
-//     .eq("uuid", uuid)
-//     .select();
+  const { data, error } = await supabase
+    .from("library")
+    .update({tags: ["AGI"]})
+    .eq("uuid", uuid)
+    .select();
 
-//   if (data) {
-//     return NextResponse.json(data);
-//   } else {
-//     console.log(error);
-//     return NextResponse.json(error);
-//   }
-// }
+  if (data) {
+    return NextResponse.json(data, { status: 200 });
+  } else {
+    console.log(error);
+    return NextResponse.json(error, { status: 500 });
+  }
+}
 
-// export async function DELETE(req: NextRequest) {
-//   try {
-//     const userId = req.nextUrl.searchParams.get("userId");
-//     const uuid = req.nextUrl.searchParams.get("uuid");
-//     const authHeader = req.headers.get("Authorization");
+export async function DELETE(req: NextRequest) {
+  try {
+    const userId = req.nextUrl.searchParams.get("userId");
+    const uuid = req.nextUrl.searchParams.get("uuid");
+    const authHeader = req.headers.get("Authorization");
 
-//     if (!userId || !authHeader) {
-//       return NextResponse.json(
-//         { message: "Missing userId or token" },
-//         { status: 400 }
-//       );
-//     }
+    if (!userId || !authHeader) {
+      return NextResponse.json(
+        { message: "Missing userId or token" },
+        { status: 400 }
+      );
+    }
 
-//     const token = authHeader.split(" ")[1];
-//     // const supabase = await supabaseClient(token);
+    const token = authHeader.split(" ")[1];
+    const supabase = await supabaseClient(token);
 
-//     const { data, error } = await supabase
-//       .from("library")
-//       .delete()
-//       .eq("uuid", uuid)
-//       .select();
+    const { data, error } = await supabase
+      .from("library")
+      .delete()
+      .eq("uuid", uuid)
+      .select();
 
-//     if (error) {
-//       throw error;
-//     }
+    if (error) {
+      throw error;
+    }
 
-//     return NextResponse.json(data);
-//   } catch (error) {
-//     console.error("Error in DELETE /api/library:", error);
-//     return NextResponse.json(
-//       {
-//         message:
-//           error instanceof Error
-//             ? error.message
-//             : "An unexpected error occurred",
-//       },
-//       { status: 500 }
-//     );
-//   }
-// }
+    return NextResponse.json(data, { status: 200 });
+  } catch (error) {
+    console.error("Error in DELETE /api/library:", error);
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      },
+      { status: 500 }
+    );
+  }
+}

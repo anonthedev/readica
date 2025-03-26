@@ -6,10 +6,10 @@ import { Inter } from "next/font/google";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
-  variable: "--var-inter",
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -22,19 +22,17 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} overflow-x-hidden`}>
+      <body className={`${inter.variable} font-inter overflow-x-hidden`}>
         <SessionProvider session={session}>
           <SidebarProvider>
             <AppSidebar />
             <main className="w-screen flex">
-              <SidebarTrigger className="my-2 cursor-pointer w-auto" />
-              <section className="flex-grow">
-              {children}
-              </section>
+              <SidebarTrigger className="my-2 cursor-pointer" />
+              <section className="flex-grow">{children}</section>
             </main>
-            <Toaster />
           </SidebarProvider>
         </SessionProvider>
+        <Toaster />
       </body>
     </html>
   );

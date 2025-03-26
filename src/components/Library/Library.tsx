@@ -15,24 +15,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { EllipsisVertical, Plus, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { arxivSearch } from "@/lib/searchFunctions";
-import { SearchedPaperDetails } from "@/types/PaperTypes";
+import { LibraryItemType, SearchedPaperDetails } from "@/types/PaperTypes";
 import MultiInput from "../ui/multi-input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
+import { turnacateString } from "@/lib/utils";
+import Link from "next/link";
 
 export default function Library() {
   const [library, setLibrary] = useState<any[]>([]);
   const [paperDetails, setPaperDetails] =
     useState<SearchedPaperDetails | null>();
   const [authors, setAuthors] = useState<Set<string>>(new Set());
-  const [title, setTitle] = useState<string>();
-  const [description, setDescription] = useState<string>("");
   const [currentAuthor, setCurrentAuthor] = useState("");
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [pdfLink, setPdfLink] = useState("");
   const [paperURL, setPaperURL] = useState("");
+
+  const [uploadPaperBtnDisabled, setUploadPaperBtnDisabled] =
+    useState<Boolean>(true);
 
   const [loadingPapers, setLoadingPapers] = useState<Boolean>(true);
   const { data: session, status } = useSession();
@@ -51,6 +65,15 @@ export default function Library() {
       getLib();
     }
   }, []);
+
+  useEffect(() => {
+    console.log("X");
+    if (paperURL == "" || title == "" || pdfLink == "") {
+      setUploadPaperBtnDisabled(true);
+    } else {
+      setUploadPaperBtnDisabled(false);
+    }
+  }, [title, authors, pdfLink, paperURL]);
 
   async function getLib() {
     setLoadingPapers(true);
@@ -74,14 +97,19 @@ export default function Library() {
   }
 
   async function getPaperDetails() {
-    const resp = await arxivSearch(paperURL);
-    console.log(resp);
-    if (resp.data) {
-      setTitle(resp.data[0].title);
-      setDescription(resp.data[0].description);
-      const authors = new Set(resp.data[0].authors);
-      setAuthors(authors as Set<string>);
-      setPdfLink(resp.data[0].pdf_link);
+    // setLoadingDetails(true);
+    try {
+      const resp = await arxivSearch(paperURL);
+      if (resp.data) {
+        setTitle(resp.data[0].title);
+        setDescription(resp.data[0].description);
+        const authors = new Set(resp.data[0].authors);
+        setAuthors(authors as Set<string>);
+        setPdfLink(resp.data[0].pdf_link);
+      }
+      // setLoadingDetails(false);
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -92,6 +120,7 @@ export default function Library() {
   }, [paperURL]);
 
   async function postLib() {
+    setUploadPaperBtnDisabled(true);
     try {
       const resp = await axios.post(
         `/api/library?userId=${encodeURI(session?.user.id)}`,
@@ -109,19 +138,21 @@ export default function Library() {
         }
       );
       console.log("Paper Added Successfully");
-      toast("Paper Added Successfully");
+      toast.success("Paper Added Successfully");
     } catch (error: unknown) {
       console.log(error);
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
           console.log("Paper already present in your library");
-          toast("Paper already present in your library");
+          toast.error("Paper already present in your library");
         } else {
-          toast("Something went wrong");
+          toast.error("Something went wrong");
         }
       } else {
-        toast("Something went wrong");
+        toast.error("Something went wrong");
       }
+    } finally {
+      setUploadPaperBtnDisabled(true);
     }
   }
 
@@ -184,6 +215,7 @@ export default function Library() {
                     <label htmlFor="Input">Authors</label>
                     <MultiInput
                       setInputs={setAuthors}
+                      inputs={authors}
                       currentInput={currentAuthor}
                       setCurrentInput={setCurrentAuthor}
                       placeholder={"Press Enter after typing an Author's Name"}
@@ -228,16 +260,18 @@ export default function Library() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button onClick={postLib}>Upload Paper</Button>
+              <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
+                Upload Paper
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
       {!loadingPapers ? (
-        <div>
+        <div className="w-full flex flex-row flex-wrap gap-6">
           {library.length > 0 ? (
             library.map((libItem) => (
-              <div key={libItem.uuid}>{libItem.title}</div>
+              <LibraryItem item={libItem} key={libItem.uuid} />
             ))
           ) : (
             <div>No items in your library</div>
@@ -246,6 +280,153 @@ export default function Library() {
       ) : (
         <div>Loading....</div>
       )}
+    </div>
+  );
+}
+
+function LibraryItem({ item }: { item: LibraryItemType }) {
+  const [tags, setTags] = useState<Set<string>>(new Set());
+  const [currentTag, setCurrentTag] = useState("");
+  const [updatingItem, setUpdatingItem] = useState<Boolean>(false);
+
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (item.tags) {
+      setTags(new Set(item.tags));
+      console.log(item.tags)
+    }
+  }, []);
+
+  async function updateItemTags(item: LibraryItemType) {
+    setUpdatingItem(true);
+    try {
+      const resp = await axios.put(
+        `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
+          session?.user.id
+        }`,
+
+        { tags: Array.from(tags) },
+        {
+          headers: {
+            Authorization: "Bearer " + session?.supabaseAccessToken,
+          },
+        }
+      );
+      toast.success("Tags Updated");
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        console.log(e.response?.data);
+        toast.error("Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      setUpdatingItem(false);
+    }
+  }
+
+  return (
+    <div
+      key={item.uuid}
+      className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
+    >
+      <Link href={"#"}>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-medium text-lg max-w-[25ch]">
+              {turnacateString(item.title, 45)}
+            </h2>
+            <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
+              {item.authors.length > 2
+                ? item.authors.slice(0, 2).join(", ") +
+                  `, +${item.authors.length - 2}`
+                : item.authors.join(", ")}
+            </p>
+          </div>
+          {item.description && (
+            <p
+              className="font-[400] text-xs max-w-[40ch] text-ellipsis"
+              title={item.description}
+            >
+              {turnacateString(item.description, 65)}
+            </p>
+          )}
+        </div>
+      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <EllipsisVertical />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+            <Dialog>
+              <DialogTrigger asChild onClick={() => {}}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTags(new Set(item.tags));
+                  }}
+                  className="w-full text-left"
+                >
+                  Edit Tags
+                </button>
+              </DialogTrigger>
+              <DialogContent onKeyDown={(e) => e.stopPropagation()}>
+                <DialogHeader className="flex flex-col gap-2">
+                  <DialogTitle title={`Set reading status of ${item.title}`}>
+                    Set tags for {turnacateString(item.title, 30)}
+                  </DialogTitle>
+                  <DialogDescription className="flex flex-col gap-2">
+                    <span>Maximum of 5 tags can be set to a paper.</span>
+                    <span className="flex flex-row gap-2 flex-wrap">
+                      {tags &&
+                        tags.size > 0 &&
+                        Array.from(tags).map((tag) => (
+                          <span
+                            key={tag}
+                            className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
+                          >
+                            <p>{tag}</p>
+
+                            <X
+                              size={12}
+                              className="cursor-pointer"
+                              onClick={() => {
+                                setTags((prevTags) => {
+                                  const newTags = new Set(prevTags);
+                                  newTags.delete(tag);
+                                  return newTags;
+                                });
+                              }}
+                            />
+                          </span>
+                        ))}
+                    </span>
+                    <MultiInput
+                      inputs={tags}
+                      setCurrentInput={setCurrentTag}
+                      currentInput={currentTag}
+                      setInputs={setTags}
+                      maxInputs={5}
+                      placeholder="Press Enter after typing a tag"
+                    />
+                    <Button
+                      className="w-fit self-center"
+                      disabled={updatingItem}
+                      onClick={() => {
+                        updateItemTags(item);
+                      }}
+                    >
+                      {updatingItem ? "Updating..." : "Save"}
+                    </Button>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

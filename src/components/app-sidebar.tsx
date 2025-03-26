@@ -32,6 +32,7 @@ import {
 
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 const items = [
   {
@@ -71,10 +72,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title} >
                   <SidebarMenuButton asChild isActive={pathname == item.url} className="data-[active=true]:bg-[#7732E8] data-[active=true]:text-white" >
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

@@ -2,14 +2,18 @@ import { Input } from "./input";
 
 export default function MultiInput({
   setInputs,
+  inputs,
+  maxInputs,
   currentInput,
   setCurrentInput,
-  placeholder
+  placeholder,
 }: {
   setInputs: (updater: (prevInputs: Set<string>) => Set<string>) => void;
+  inputs: Set<string>;
+  maxInputs?: number;
   currentInput: string;
   setCurrentInput: (string: string) => void;
-  placeholder: string
+  placeholder: string;
 }) {
   return (
     <Input
@@ -21,9 +25,19 @@ export default function MultiInput({
       }}
       onKeyDownCapture={(e) => {
         if (e.key === "Enter") {
-          if (currentInput.length > 0) {
-            setInputs((prevInputs) => new Set(prevInputs).add(currentInput));
-            setCurrentInput("");
+          if (maxInputs) {
+            if (
+              currentInput.length > 0 &&
+              Array.from(inputs).length < maxInputs
+            ) {
+              setInputs((prevInputs) => new Set(prevInputs).add(currentInput));
+              setCurrentInput("");
+            }
+          } else {
+            if (currentInput.length > 0) {
+              setInputs((prevInputs) => new Set(prevInputs).add(currentInput));
+              setCurrentInput("");
+            }
           }
         }
       }}
