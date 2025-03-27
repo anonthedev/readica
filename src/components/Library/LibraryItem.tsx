@@ -39,7 +39,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
     }
   }, []);
 
-  async function updateItem(dataToUpdate: any) {
+  async function updateTags() {
     setUpdatingItem(true);
     try {
       const resp = await axios.put(
@@ -47,7 +47,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
           session?.user.id
         }`,
 
-        dataToUpdate,
+        {tags: Array.from(tags)},
         {
           headers: {
             Authorization: "Bearer " + session?.supabaseAccessToken,
@@ -92,7 +92,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   return (
     <div
       key={item.uuid}
-      className="flex flex-row justify-between items-start bg-white rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
+      className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
     >
       <Link href={"#"}>
         <div className="flex flex-col gap-3">
@@ -190,7 +190,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                       className="w-fit self-center"
                       disabled={updatingItem}
                       onClick={() => {
-                        updateItem({ tags: Array.from(tags) });
+                        updateTags();
                       }}
                     >
                       {updatingItem ? "Updating..." : "Save"}

@@ -141,7 +141,6 @@ export default function Library() {
           },
         }
       );
-      console.log("Paper Added Successfully");
       toast.success("Paper Added Successfully");
       // setTitle("");
       // setDescription("");
@@ -151,7 +150,6 @@ export default function Library() {
       console.log(error);
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
-          console.log("Paper already present in your library");
           toast.error("Paper already present in your library");
         } else {
           toast.error("Something went wrong");
