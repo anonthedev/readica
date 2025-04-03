@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabaseClient } from "@/lib/supabase";
+// import { supabaseClient } from "@/lib/supabase";
 import axios from "axios";
 import { Button } from "../ui/button";
 import {
@@ -76,7 +76,7 @@ export default function Library() {
     setLoadingPapers(true);
     try {
       const resp = await axios.get(
-        `/api/library?userId=${encodeURI(session?.user.id)}`,
+        `/api/library?userId=${encodeURI(session?.user.id!)}`,
         {
           headers: {
             Authorization: "Bearer " + session?.supabaseAccessToken,
@@ -103,12 +103,20 @@ export default function Library() {
   async function getPaperDetails() {
     try {
       const resp = await arxivSearch(paperURL);
-      if (resp.data) {
-        setTitle(resp.data[0].title);
-        setDescription(resp.data[0].description);
-        const authors = new Set(resp.data[0].authors);
+      if (
+        resp.data
+      ) {
+        const data = resp.data as {
+          title: string;
+          description: string;
+          authors: string[];
+          pdf_link: string;
+        }[]
+        setTitle(data[0].title);
+        setDescription(data[0].description);
+        const authors = new Set(data[0].authors);
         setAuthors(authors as Set<string>);
-        setPdfLink(resp.data[0].pdf_link);
+        setPdfLink(data[0].pdf_link);
       }
     } catch (e) {
       console.log(e);
@@ -125,7 +133,7 @@ export default function Library() {
     setUploadPaperBtnDisabled(true);
     try {
       await axios.post(
-        `/api/library?userId=${encodeURI(session?.user.id)}`,
+        `/api/library?userId=${encodeURI(session?.user.id!)}`,
         {
           title: title,
           email: session?.user.email,
@@ -178,7 +186,7 @@ export default function Library() {
       Array.from(selectedTags).every((tag) => item.tags?.includes(tag))
     );
   }
-  
+
   return (
     <div className="pr-10 py-20 w-full flex flex-col gap-10">
       <div className="flex flex-row justify-between w-full items-center">
@@ -307,7 +315,7 @@ export default function Library() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="flex">
-                      <FilterIcon/>
+                      <FilterIcon />
                       Filter
                     </Button>
                   </DropdownMenuTrigger>
