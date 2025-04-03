@@ -1,13 +1,12 @@
 "use client";
 
+import { Session } from "next-auth";
 import { SessionProvider as Provider } from "next-auth/react";
 import { ReactNode } from "react";
 
 interface SessionProviderProps {
   children: ReactNode;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  session?: any;
+  session?: Session;
 }
 
 export default function SessionProvider({
