@@ -26,7 +26,7 @@ export default function Login() {
         <h1 className="text-2xl font-bold font-inter">Sign In</h1>
         <Button
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          className="w-1/2 h-auto flex flex-row items-center gap-2 rounded-lg bg-transparent border text-black px-4 py-2 hover:bg-[#7732E8] font-inter hover:text-white hover:cursor-pointer"
+          className="w-1/2 h-auto flex flex-row items-center gap-2 rounded-lg bg-transparent border px-4 py-2 font-inter"
         >
           <svg
             width="24"

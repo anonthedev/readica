@@ -64,7 +64,7 @@ const items = [
 export function AppSidebar() {
   const { data: session } = useSession();
   const { setTheme, theme } = useTheme();
-  console.log(theme)
+  console.log(theme);
   const pathname = usePathname();
 
   return (
@@ -82,7 +82,7 @@ export function AppSidebar() {
                     isActive={pathname == item.url}
                     className="data-[active=true]:bg-[#7732E8] data-[active=true]:text-white"
                   >
-                    <Link href={item.url}>
+                    <Link href={item.url} prefetch={true}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -121,18 +121,18 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <div className="flex flex-row gap-2 items-center ">
-                    {session?.user?.image ? (
+                  {session?.user?.image ? (
+                    <div className="flex flex-row gap-2 items-center w-full">
                       <img
                         className="rounded-full w-[30px]"
                         src={session?.user?.image}
                         alt={session?.user?.name ? session?.user?.name : "user"}
                       />
-                    ) : (
-                      <User2 />
-                    )}
-                    {/* <p>{session?.user?.name}</p> */}
-                  </div>
+                      <p>{session.user.name}</p>
+                    </div>
+                  ) : (
+                    <User2 />
+                  )}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent

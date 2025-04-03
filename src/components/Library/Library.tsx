@@ -14,16 +14,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { EllipsisVertical, Plus, RefreshCcw, X } from "lucide-react";
+import { FilterIcon, Plus, RefreshCcw, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { arxivSearch } from "@/lib/searchFunctions";
 
@@ -43,7 +41,7 @@ export default function Library() {
   const [paperURL, setPaperURL] = useState("");
   const [allTags, setAllTags] = useState<Set<string>>(new Set());
 
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   const [uploadPaperBtnDisabled, setUploadPaperBtnDisabled] =
     useState<boolean>(true);
@@ -170,6 +168,17 @@ export default function Library() {
     return <p>Redirecting to sign in...</p>;
   }
 
+  function filterItemsByTags(
+    items: LibraryItemType[],
+    selectedTags: Set<string>
+  ) {
+    if (selectedTags.size === 0) return items;
+
+    return items.filter((item) =>
+      Array.from(selectedTags).every((tag) => item.tags?.includes(tag))
+    );
+  }
+  
   return (
     <div className="pr-10 py-20 w-full flex flex-col gap-10">
       <div className="flex flex-row justify-between w-full items-center">
@@ -294,44 +303,66 @@ export default function Library() {
         <section className="flex flex-col gap-4">
           <div>
             {allTags && (
-              <Select
-                onValueChange={(e) => {
-                  if (e !== "all") {
-                    setSelectedTag(e);
-                  } else {
-                    setSelectedTag("");
-                  }
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
+              <div className="flex flex-row items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex">
+                      <FilterIcon/>
+                      Filter
+                    </Button>
+                  </DropdownMenuTrigger>
 
-                <SelectContent>
-                  {Array.from(allTags).length > 0 &&
-                    Array.from(allTags).map((tag) => (
-                      <SelectItem key={tag} value={tag}>
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  <SelectItem value="all">All</SelectItem>
-                </SelectContent>
-              </Select>
+                  <DropdownMenuContent className="">
+                    {Array.from(allTags).length > 0 ? (
+                      Array.from(allTags).map((tag) => (
+                        <DropdownMenuItem
+                          key={tag}
+                          onClick={() => {
+                            setSelectedTags((prevTags) =>
+                              new Set(prevTags).add(tag)
+                            );
+                          }}
+                        >
+                          {tag}
+                        </DropdownMenuItem>
+                      ))
+                    ) : (
+                      <DropdownMenuItem disabled>
+                        No tags available
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {selectedTags &&
+                  Array.from(selectedTags).map((tag) => (
+                    <span
+                      key={tag}
+                      className="flex flex-row gap-1 items-center justify-center w-fit bg-purple text-xs rounded-md p-2 text-white text-center"
+                    >
+                      <span>{tag}</span>
+
+                      <X
+                        size={12}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedTags((prevTags) => {
+                            const newTags = new Set(prevTags);
+                            newTags.delete(tag);
+                            return newTags;
+                          });
+                        }}
+                      />
+                    </span>
+                  ))}
+              </div>
             )}
           </div>
           <div className="w-full flex flex-row flex-wrap gap-6 flex-grow overflow-y-auto">
             {library.length > 0 ? (
-              library
-                .filter((item: LibraryItemType) => {
-                  if (selectedTag) {
-                    return item.tags?.includes(selectedTag);
-                  } else {
-                    return item;
-                  }
-                })
-                .map((libItem) => (
-                  <LibraryItem item={libItem} key={libItem.uuid} />
-                ))
+              filterItemsByTags(library, selectedTags).map((item) => (
+                <LibraryItem key={item.uuid} item={item} />
+              ))
             ) : (
               <div>No items in your library</div>
             )}

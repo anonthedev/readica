@@ -1,5 +1,10 @@
-export default function page() {
+import Discover from "@/components/Discover/Discover";
+
+
+export default function Page() {
   return (
-    <div>page</div>
-  )
+    <div className="h-screen">
+      <Discover />
+    </div>
+  );
 }
