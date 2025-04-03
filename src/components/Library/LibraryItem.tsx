@@ -8,7 +8,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -42,7 +41,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   async function updateTags() {
     setUpdatingItem(true);
     try {
-      const resp = await axios.put(
+      await axios.put(
         `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
           session?.user.id
         }`,

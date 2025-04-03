@@ -32,7 +32,7 @@ import LibraryItem from "@/components/Library/LibraryItem";
 import { LibraryItemType } from "@/types/PaperTypes";
 
 export default function Library() {
-  const [library, setLibrary] = useState<any[]>([]);
+  const [library, setLibrary] = useState<LibraryItemType[]>([]);
   const [authors, setAuthors] = useState<Set<string>>(new Set());
   const [currentAuthor, setCurrentAuthor] = useState("");
   const [title, setTitle] = useState<string>("");
@@ -50,7 +50,7 @@ export default function Library() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const supabase = supabaseClient(session?.supabaseAccessToken);
+  // const supabase = supabaseClient(session?.supabaseAccessToken);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -124,7 +124,7 @@ export default function Library() {
   async function postLib() {
     setUploadPaperBtnDisabled(true);
     try {
-      const resp = await axios.post(
+      await axios.post(
         `/api/library?userId=${encodeURI(session?.user.id)}`,
         {
           title: title,

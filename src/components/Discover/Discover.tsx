@@ -8,13 +8,6 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import ReactMarkdown from "react-markdown";
 
-interface Paper {
-  title: string;
-  url: string;
-  description: string;
-  authors: string[];
-}
-
 interface SearchResults {
   citations: {
     id: string;
@@ -44,11 +37,12 @@ export default function PaperSearch() {
       console.log(resp.data);
       setResults(resp.data);
     } catch (err) {
+      console.log(err)
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-auto p-6">
@@ -61,7 +55,7 @@ export default function PaperSearch() {
         {results && (
           <div className="max-w-3xl mx-auto space-y-8">
             <div className="flex flex-row flex-wrap gap-3">
-              {results.citations.map((item, index: number) => (
+              {results.citations.map((item) => (
                 <div
                   key={item.url}
                   className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200 w-fit"
@@ -79,7 +73,7 @@ export default function PaperSearch() {
                           )}
                           <h2
                             className="font-medium text-lg max-w-[25ch]"
-                            title={item.title}
+                            title={item.title ? item.title : item.url}
                           >
                             {turnacateString(item.title, 45)}
                           </h2>
@@ -137,8 +131,8 @@ export default function PaperSearch() {
           </div>
         )}
 
-        {/* {!results && !error && (
-          <div className="max-w-2xl mx-auto text-center mt-20">
+        {!results && (
+          <div className="w-full flex-col flex text-center h-full items-center justify-center">
             <h1 className="text-3xl font-bold mb-4">
               Research Paper Discovery
             </h1>
@@ -146,7 +140,7 @@ export default function PaperSearch() {
               Enter your research topic below to find relevant papers
             </p>
           </div>
-        )} */}
+        )}
       </div>
 
       <div className="border-t p-4">

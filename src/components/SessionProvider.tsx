@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 
 interface SessionProviderProps {
   children: ReactNode;
+  //@ts-ignore
   session?: any;
 }
 

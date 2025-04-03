@@ -32,11 +32,11 @@ export async function arxivSearch(query: string, signal?: AbortSignal) {
         status: resp.status,
       };
     }
-  } catch (err: any) {
+  } catch (err) {
     console.log(err);
     return {
       data: err,
-      status: err.response?.status || 500,
+      status: 500,
     };
   }
 }

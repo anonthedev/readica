@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const token = authHeader?.split(" ")[1];
     const supabase = supabaseClient(token);
 
-    let { data: library, error } = await supabase
+    const { data: library, error } = await supabase
       .from("library")
       .select("*")
       .eq("user_id", userId);
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("userId");
   const body = await req.json();
   const authHeader = req.headers.get("Authorization");
