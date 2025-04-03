@@ -1,172 +1,204 @@
 "use client";
 
 import { turnacateString } from "@/lib/utils";
-import axios from "axios";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { memo, useMemo, useCallback, FormEvent } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import ReactMarkdown from "react-markdown";
+import { useChat } from "@ai-sdk/react";
+import { Loader2 } from "lucide-react";
 
-interface SearchResults {
-  citations: {
-    id: string;
-    title: string;
-    url: string;
-    author: string;
-    publishedDate: string;
-    image: string;
-    favicon?: string;
-  }[];
-  content: string;
+interface Paper {
+  url: string;
+  title?: string;
+  author?: string;
+  summary?: string;
+  favicon?: string;
 }
 
-export default function PaperSearch() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResults | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface ToolInvocationResult {
+  results: Paper[];
+}
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+interface ToolInvocation {
+  state: string;
+  result?: ToolInvocationResult;
+}
 
-    try {
-      const resp = await axios.get(`/api/recommendation?q=${query}`);
-      console.log(resp.data);
-      setResults(resp.data);
-    } catch (err) {
-      console.log(err)
-    } finally {
-      setLoading(false);
-    }
-  };
+interface MessagePart {
+  type: string;
+  toolInvocation?: ToolInvocation;
+}
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto p-6">
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-            <p>{error}</p>
-          </div>
-        )}
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  parts?: MessagePart[];
+}
 
-        {results && (
-          <div className="max-w-3xl mx-auto space-y-8">
-            <div className="flex flex-row flex-wrap gap-3">
-              {results.citations.map((item) => (
-                <div
-                  key={item.url}
-                  className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200 w-fit"
-                >
-                  <Link href={item.url} target="_blank">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex flex-row gap-2 items-center">
-                          {item.favicon && (
-                            <img
-                              src={item.favicon}
-                              alt=""
-                              className="h-fit aspect-square rounded-full w-[25px]"
-                            />
-                          )}
-                          <h2
-                            className="font-medium text-lg max-w-[25ch]"
-                            title={item.title ? item.title : item.url}
-                          >
-                            {turnacateString(item.title, 45)}
-                          </h2>
-                        </div>
-                        <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
-                          {item.author}
-                        </p>
-                      </div>
-                      {/* {item.description && (
-                        <p
-                          className="font-[400] text-xs max-w-[40ch] text-ellipsis"
-                          title={item.description}
-                        >
-                          {turnacateString(item.description, 65)}
-                        </p>
-                      )} */}
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-            <div className="p-6 rounded-lg">
-              <h2 className="text-xl font-semibold mb-4">Summary</h2>
-              <ReactMarkdown
-                components={{
-                  a: ({ href, children }) => (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: "#7732E8",
-                        textDecoration: "underline",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {children}
-                    </a>
-                  ),
-                }}
-              >
-                {results.content}
-              </ReactMarkdown>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {/* {results.keyTopics.map((topic: string) => (
-                  <span
-                    key={topic}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                  >
-                    {topic}
-                  </span>
-                ))} */}
-              </div>
-            </div>
-          </div>
-        )}
+interface MessageItemProps {
+  message: Message;
+  isLoading: boolean;
+}
 
-        {!results && (
-          <div className="w-full flex-col flex text-center h-full items-center justify-center">
-            <h1 className="text-3xl font-bold mb-4">
-              Research Paper Discovery
-            </h1>
-            <p className="text-gray-600">
-              Enter your research topic below to find relevant papers
+// Memoize the paper card component
+const PaperCard = memo(({ paper }: {paper: Paper}) => (
+  <div className="flex-shrink-0 w-[300px] bg-[#111111] text-white rounded-lg p-4 border border-gray-800">
+    <Link href={paper.url} target="_blank" className="hover:opacity-80 transition-opacity">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start gap-3">
+          {paper.favicon && (
+            <img
+              src={paper.favicon}
+              alt=""
+              className="w-6 h-6 rounded-full flex-shrink-0"
+              loading="lazy"
+            />
+          )}
+          <div>
+            <h2 className="font-medium text-sm mb-1" title={paper.title || paper.url}>
+              {turnacateString(paper.title || paper.url, 65)}
+            </h2>
+            <p className="text-gray-400 text-xs">
+              {turnacateString(paper.author || "", 50)}
             </p>
           </div>
+        </div>
+        {paper.summary && (
+          <p className="text-gray-300 text-xs line-clamp-3">
+            {paper.summary}
+          </p>
         )}
       </div>
+    </Link>
+  </div>
+));
 
-      <div className="border-t p-4">
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-          <div className="flex gap-3">
-            <Input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="What research papers are you looking for?"
-              className="flex-1 p-3 border rounded-lg"
-              required
-            />
-            <Button type="submit" className="px-6 py-3" disabled={loading}>
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Searching...</span>
-                </div>
-              ) : (
-                "Search"
-              )}
-            </Button>
+PaperCard.displayName = 'PaperCard';
+
+// Memoized message component
+const MessageItem = memo(({ message, isLoading }: MessageItemProps) => {
+  // Extract papers from tool invocations
+  const papers = useMemo((): Paper[] => {
+    if (!message.parts) return [];
+    
+    const extractedPapers: Paper[] = [];
+    for (const part of message.parts) {
+      if (
+        part.type === "tool-invocation" &&
+        part.toolInvocation?.state === "result" &&
+        part.toolInvocation.result
+      ) {
+        extractedPapers.push(...part.toolInvocation.result.results);
+      }
+    }
+    return extractedPapers;
+  }, [message.parts]);
+
+  return (
+    <div
+      className={`flex flex-col ${
+        message.role === "user" ? "items-end" : "items-start"
+      }`}
+    >
+      <div
+        className={`rounded-lg py-2 px-4 max-w-[80%] ${
+          message.role === "user"
+            ? "bg-purple text-white"
+            : "bg-transparent"
+        }`}
+      >
+        {message.role === "assistant" && (!message.parts || message.parts.length === 0) && isLoading && (
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Searching for papers...</span>
           </div>
-        </form>
+        )}
+        
+        {papers.length > 0 && (
+          <div className="flex flex-row overflow-x-auto gap-4 pb-4 max-w-full">
+            {papers.map((paper: Paper) => (
+              <PaperCard key={paper.url} paper={paper} />
+            ))}
+          </div>
+        )}
+        
+        <ReactMarkdown
+          components={{
+            a: ({ href, children }) => (
+              <a
+                href={href || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline font-medium hover:text-purple"
+              >
+                {children}
+              </a>
+            ),
+          }}
+        >
+          {message.content}
+        </ReactMarkdown>
       </div>
+    </div>
+  );
+});
+
+MessageItem.displayName = 'MessageItem';
+
+export default function Discover() {
+  const { 
+    messages, 
+    input, 
+    handleInputChange, 
+    handleSubmit, 
+    isLoading 
+  } = useChat({
+    api: "/api/recommendation",
+  });
+
+  // Memoize the messages list
+  const memoizedMessages = useMemo(() => {
+    return messages.map(message => (
+      <MessageItem 
+        key={message.id} 
+        message={message as Message} 
+        isLoading={isLoading} 
+      />
+    ));
+  }, [messages, isLoading]);
+
+  // Optimize form submission
+  const onSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+    handleSubmit(event);
+  }, [handleSubmit]);
+
+  return (
+    <div className="flex flex-col gap-4 h-full w-full items-center p-4 max-w-4xl mx-auto">
+      <div className="flex-1 overflow-y-auto w-full space-y-4 px-4">
+        {memoizedMessages}
+      </div>
+      <form
+        onSubmit={onSubmit}
+        className="border-t pt-4 flex flex-row gap-4 w-full sticky bottom-0 bg-background"
+      >
+        <Input
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Ask research related question..."
+          className="flex-1"
+          disabled={isLoading}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            'Send'
+          )}
+        </Button>
+      </form>
     </div>
   );
 }
