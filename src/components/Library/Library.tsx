@@ -76,7 +76,7 @@ export default function Library() {
     setLoadingPapers(true);
     try {
       const resp = await axios.get(
-        `/api/library?userId=${encodeURI(session?.user.id!)}`,
+        `/api/library?userId=${encodeURI(session?.user.id as string)}`,
         {
           headers: {
             Authorization: "Bearer " + session?.supabaseAccessToken,
@@ -133,7 +133,7 @@ export default function Library() {
     setUploadPaperBtnDisabled(true);
     try {
       await axios.post(
-        `/api/library?userId=${encodeURI(session?.user.id!)}`,
+        `/api/library?userId=${encodeURI(session?.user.id as string)}`,
         {
           title: title,
           email: session?.user.email,
