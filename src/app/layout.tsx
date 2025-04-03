@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Session } from "next-auth";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,7 +24,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className="font-inter overflow-x-hidden">
-        <SessionProvider session={session}>
+        <SessionProvider session={session as Session}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <SidebarProvider>
               <AppSidebar />
