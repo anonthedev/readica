@@ -124,7 +124,7 @@ export default function Library() {
   }
 
   useEffect(() => {
-    if (paperURL) {
+    if (paperURL.includes("arxiv.org")) {
       getPaperDetails();
     }
   }, [paperURL]);
@@ -164,7 +164,7 @@ export default function Library() {
         toast.error("Something went wrong");
       }
     } finally {
-      setUploadPaperBtnDisabled(true);
+      setUploadPaperBtnDisabled(false);
     }
   }
 
@@ -300,7 +300,7 @@ export default function Library() {
               </DialogHeader>
               <DialogFooter>
                 <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
-                  Upload Paper
+                  {uploadPaperBtnDisabled ? "Uploading..." : "Upload Paper"}
                 </Button>
               </DialogFooter>
             </DialogContent>

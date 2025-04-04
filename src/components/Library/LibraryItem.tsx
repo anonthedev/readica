@@ -11,11 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import MultiInput from "@/components/ui/multi-input";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { turnacateString } from "@/lib/utils";
 import { LibraryItemType } from "@/types/PaperTypes";
@@ -28,6 +31,11 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [currentTag, setCurrentTag] = useState("");
   const [updatingItem, setUpdatingItem] = useState<boolean>(false);
+  const [title, setTitle] = useState(item.title);
+  const [description, setDescription] = useState(item.description || "");
+  const [authors, setAuthors] = useState<Set<string>>(new Set(item.authors));
+  const [currentAuthor, setCurrentAuthor] = useState("");
+  const [pdfLink, setPdfLink] = useState(item.pdf_link || "");
 
   const { data: session } = useSession();
 
@@ -46,7 +54,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
           session?.user.id
         }`,
 
-        {tags: Array.from(tags)},
+        { tags: Array.from(tags) },
         {
           headers: {
             Authorization: "Bearer " + session?.supabaseAccessToken,
@@ -88,12 +96,44 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
     }
   }
 
+  async function updatePaperDetails() {
+    setUpdatingItem(true);
+    try {
+      await axios.put(
+        `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
+          session?.user.id
+        }`,
+        {
+          title,
+          description,
+          authors: Array.from(authors),
+          pdf_link: pdfLink,
+        },
+        {
+          headers: {
+            Authorization: "Bearer " + session?.supabaseAccessToken,
+          },
+        }
+      );
+      toast.success("Paper details updated successfully");
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        console.log(e.response?.data);
+        toast.error("Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      setUpdatingItem(false);
+    }
+  }
+
   return (
     <div
       key={item.uuid}
       className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
     >
-      <Link href={"#"}>
+      <Link href={item.pdf_link as string} target="_blank">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 className="font-medium text-lg max-w-[25ch]" title={item.title}>
@@ -196,6 +236,90 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                     </Button>
                   </DialogDescription>
                 </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="w-full text-left">Edit Paper Details</button>
+              </DialogTrigger>
+              <DialogContent onKeyDown={(e) => e.stopPropagation()}>
+                <DialogHeader>
+                  <DialogTitle>Edit Paper Details</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 py-4">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="title">Title</label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Paper title"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label>Authors</label>
+                    <MultiInput
+                      inputs={authors}
+                      setCurrentInput={setCurrentAuthor}
+                      currentInput={currentAuthor}
+                      setInputs={setAuthors}
+                      placeholder="Press Enter after typing each author"
+                    />
+                    <div className="flex flex-row gap-2 flex-wrap my-2 max-h-[100px] overflow-y-auto">
+                      {authors &&
+                        authors.size > 0 &&
+                        Array.from(authors).map((author) => (
+                          <span
+                            key={author}
+                            className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
+                          >
+                            <p>{author}</p>
+
+                            <X
+                              size={12}
+                              className="cursor-pointer"
+                              onClick={() => {
+                                setAuthors((prevauthors) => {
+                                  const newauthors = new Set(prevauthors);
+                                  newauthors.delete(author);
+                                  return newauthors;
+                                });
+                              }}
+                            />
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="description">Description</label>
+                    <Textarea
+                    className="max-h-[100px]"
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Paper description"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="pdfLink">PDF Link</label>
+                    <Input
+                      id="pdfLink"
+                      value={pdfLink}
+                      onChange={(e) => setPdfLink(e.target.value)}
+                      placeholder="Link to PDF"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    disabled={updatingItem || !title || !pdfLink}
+                    onClick={updatePaperDetails}
+                  >
+                    {updatingItem ? "Updating..." : "Save Changes"}
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </DropdownMenuItem>

@@ -154,7 +154,7 @@ export default function Discover() {
     input, 
     handleInputChange, 
     handleSubmit, 
-    isLoading 
+    status 
   } = useChat({
     api: "/api/recommendation",
   });
@@ -165,10 +165,10 @@ export default function Discover() {
       <MessageItem 
         key={message.id} 
         message={message as Message} 
-        isLoading={isLoading} 
+        isLoading={status === "streaming"} 
       />
     ));
-  }, [messages, isLoading]);
+  }, [messages, status]);
 
   // Optimize form submission
   const onSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
@@ -189,10 +189,10 @@ export default function Discover() {
           onChange={handleInputChange}
           placeholder="Ask research related question..."
           className="flex-1"
-          disabled={isLoading}
+          disabled={status==="streaming"}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
+        <Button type="submit" disabled={status==="streaming" || status === "submitted"}>
+          {status==="streaming" || status === "submitted" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             'Send'
