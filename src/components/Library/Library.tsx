@@ -192,7 +192,7 @@ export default function Library() {
       <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">
-          <div
+        <div
             className="cursor-pointer hover:bg-accent p-1.5 rounded-md duration-200"
             onClick={() => {
               getLib();
@@ -202,11 +202,11 @@ export default function Library() {
               size={20}
               className={`${
                 loadingPapers ? "animate-custom-spin" : ""
-              } text-gray-500 hover:text-gray-700 duration-200`}
+              } text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 duration-200`}
             />
           </div>
           <Dialog>
-            <DialogTrigger className="flex flex-row items-center gap-2 py-2 px-3 bg-purple hover:cursor-pointer hover:bg-dark-purple text-white rounded-lg duration-200">
+            <DialogTrigger className="flex flex-row items-center gap-2 py-1.5 px-3 bg-purple hover:cursor-pointer hover:bg-dark-purple text-white rounded-lg duration-200">
               <Plus size={20} />
               Add Papers
             </DialogTrigger>
@@ -226,8 +226,8 @@ export default function Library() {
 
                   <div className="flex flex-col gap-3">
                     <h2 className="font-semibold text-md">Paper Details:</h2>
-                    <div className="flex flex-row gap-2 w-full">
-                      <div className="w-1/2">
+                    <div className="flex flex-col gap-2 w-full md:flex-row">
+                      <div className="w-full md:w-1/2">
                         <label htmlFor="input">Title</label>
                         <Input
                           placeholder="Title"
@@ -237,8 +237,8 @@ export default function Library() {
                           }}
                         />
                       </div>
-                      <div className="w-1/2">
-                        <label htmlFor="input">PDF Link of the Paper</label>
+                      <div className="w-full md:w-1/2">
+                        <label htmlFor="input" className="text-sm">PDF Link of the Paper</label>
                         <Input
                           placeholder="PDF Link"
                           value={pdfLink}
@@ -311,7 +311,7 @@ export default function Library() {
         <section className="flex flex-col gap-4">
           <div>
             {allTags && (
-              <div className="flex flex-row items-center gap-2">
+              <div className="flex flex-row flex-wrap items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="flex">

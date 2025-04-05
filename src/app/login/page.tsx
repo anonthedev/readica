@@ -4,7 +4,7 @@ import Login from '@/components/Onboarding/Login'
 
 export default function page() {
   return (
-    <main className='py-4 px-4 h-screen w-screen'>
+    <main className='h-dvh w-dvw'>
       <Login/>
     </main>
   )

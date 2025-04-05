@@ -312,7 +312,7 @@ const MessageItem = memo(({ message, isLoading, status }: MessageItemProps) => {
     <div
       className={`flex flex-col ${
         message.role === "user" ? "items-end" : "items-start"
-      }`}
+      } w-full`}
     >
       <div
         className={`rounded-lg py-2 px-4 max-w-[80%] ${
@@ -329,7 +329,7 @@ const MessageItem = memo(({ message, isLoading, status }: MessageItemProps) => {
           )}
 
         {papers.length > 0 && (
-          <div className="flex flex-row overflow-x-auto gap-4 pb-4 max-w-full">
+          <div className="flex flex-row overflow-x-auto gap-3 sm:gap-4 pb-4 max-w-[300px] md:max-w-full">
             {papers.map((paper: Paper) => (
               <PaperCard key={paper.url} paper={paper} status={status} />
             ))}
@@ -383,13 +383,13 @@ export default function Discover() {
   );
 
   return (
-    <div className="flex flex-col gap-4 h-full w-full items-center p-4 max-w-4xl mx-auto">
-      <div className="flex-1 overflow-y-auto w-full space-y-4 px-4">
+    <div className="flex flex-col gap-3 sm:gap-4 h-full w-full items-center p-2 sm:p-4 max-w-4xl mx-auto">
+      <div className="flex-1 overflow-y-auto w-full space-y-3 sm:space-y-4 px-2 sm:px-4">
         {memoizedMessages}
       </div>
       <form
         onSubmit={onSubmit}
-        className="border-t pt-4 flex flex-row gap-4 w-full sticky bottom-0 bg-background"
+        className="border-t pt-2 sm:pt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sticky bottom-0 bg-background"
       >
         <Input
           value={input}
