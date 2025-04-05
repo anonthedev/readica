@@ -90,7 +90,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
+        <SidebarMenu className="space-y-2">
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -118,24 +118,24 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
                   {session?.user?.image ? (
-                    <div className="flex flex-row gap-2 items-center w-full">
+                    <div className="flex flex-row gap-2 items-center w-full cursor-pointer">
                       <img
                         className="rounded-full w-[30px]"
                         src={session?.user?.image}
                         alt={session?.user?.name ? session?.user?.name : "user"}
                       />
-                      <p>{session.user.name}</p>
+                      <div className="flex flex-col">
+                        <p className="">{session.user.name}</p>
+                        <span className="text-xs">{session.user.email}</span>
+                      </div>
                     </div>
                   ) : (
                     <User2 />
                   )}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                className="w-[--radix-popper-anchor-width] h-auto"
-              >
-                <DropdownMenuItem>
+              <DropdownMenuContent side="top" className="w-full h-auto">
+                <DropdownMenuItem className="cursor-pointer w-full">
                   <span
                     onClick={() => {
                       signOut({ callbackUrl: "/login" });

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "../ui/button";
-import loginSideImg from "@/resources/login-side-img.png"
 
 export default function Login() {
   const { data: session } = useSession();
@@ -21,8 +20,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-row items-center justify-between h-full w-full">
-      <div className="w-1/2 flex flex-col gap-4 items-center">
+    <div className="flex flex-col items-center justify-center gap-2 h-full w-full">
         <h1 className="text-2xl font-bold font-inter">Sign In</h1>
         <Button
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
@@ -55,9 +53,5 @@ export default function Login() {
           Sign in with Google
         </Button>
       </div>
-      <div className="h-full w-1/2 overflow-y-hidden">
-        <img src={loginSideImg.src} alt="" className="w-full"/>
-      </div>
-    </div>
   );
 }

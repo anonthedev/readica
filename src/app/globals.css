@@ -76,8 +76,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-purple: #7732E8;
-  --color-dark-purple: #5D24B3;
+  --color-purple: #7732e8;
+  --color-dark-purple: #5d24b3;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -112,14 +112,19 @@
 
   --font-inter: var(--font-inter);
 
+  /* --breakpoint-sup-sm: 639px;
+  --breakpoint-sup-md: 767px;
+  --breakpoint-sup-lg: 1023px;
+  --breakpoint-sup-xl: 1279px; */
+
   --animate-custom-spin: custom-spin 0.4s ease-in-out;
 
   @keyframes custom-spin {
-    0%{
-      transform: scale(0.6) rotate(0deg)
+    0% {
+      transform: scale(0.6) rotate(0deg);
     }
-    100%{
-      transform: scale(1) rotate(360deg)
+    100% {
+      transform: scale(1) rotate(360deg);
     }
   }
 }
