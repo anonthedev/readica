@@ -1,7 +1,13 @@
 import { supabaseClient } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession, Session } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const session: Session | null = await getServerSession(authOptions);
+  if (!session || !session.user || !session.supabaseAccessToken) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   try {
     const userId = req.nextUrl.searchParams.get("userId");
     const authHeader = req.headers.get("Authorization");
@@ -50,7 +56,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get("userId");
+  const session: Session | null = await getServerSession(authOptions);
+  if (!session || !session.user || !session.supabaseAccessToken) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+  const userId = session?.user?.id;
   const body = await req.json();
   const authHeader = req.headers.get("Authorization");
 
@@ -104,10 +114,14 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get("userId");
+  const session: Session | null = await getServerSession(authOptions);
+  if (!session || !session.user || !session.supabaseAccessToken) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+  const userId = session?.user?.id;
   const uuid = req.nextUrl.searchParams.get("uuid");
   const authHeader = req.headers.get("Authorization");
-  console.log(uuid)
+  console.log(uuid);
   const body = await req.json();
 
   const dataToUpdate = body;
@@ -138,7 +152,11 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session: Session | null = await getServerSession(authOptions);
+    if (!session || !session.user || !session.supabaseAccessToken) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session?.user?.id;
     const uuid = req.nextUrl.searchParams.get("uuid");
     const authHeader = req.headers.get("Authorization");
 

@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 // import { supabaseClient } from "@/lib/supabase";
 import axios from "axios";
 import { Button } from "../ui/button";
@@ -29,6 +29,7 @@ import MultiInput from "../ui/multi-input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import LibraryItem from "@/components/Library/LibraryItem";
+import LibraryLoading from "@/components/Library/LibraryLoading";
 import { LibraryItemType } from "@/types/PaperTypes";
 
 export default function Library() {
@@ -133,7 +134,7 @@ export default function Library() {
     setUploadPaperBtnDisabled(true);
     try {
       await axios.post(
-        `/api/library?userId=${encodeURI(session?.user.id as string)}`,
+        `/api/library`,
         {
           title: title,
           email: session?.user.email,
@@ -366,15 +367,17 @@ export default function Library() {
               </div>
             )}
           </div>
-          <div className="w-full flex flex-row flex-wrap gap-6 flex-grow overflow-y-auto">
-            {library.length > 0 ? (
-              filterItemsByTags(library, selectedTags).map((item) => (
-                <LibraryItem key={item.uuid} item={item} />
-              ))
-            ) : (
-              <div>No items in your library</div>
-            )}
-          </div>
+          <Suspense fallback={<LibraryLoading />}>
+            <div className="w-full flex flex-row flex-wrap gap-6 flex-grow overflow-y-auto">
+              {library.length > 0 ? (
+                filterItemsByTags(library, selectedTags).map((item) => (
+                  <LibraryItem key={item.uuid} item={item} />
+                ))
+              ) : (
+                <div>No items in your library</div>
+              )}
+            </div>
+          </Suspense>
         </section>
       ) : (
         <div>Loading....</div>

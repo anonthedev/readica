@@ -105,7 +105,7 @@ const PaperCard = memo(
       setUploadPaperBtnDisabled(true);
       try {
         await axios.post(
-          `/api/library?userId=${session?.user.id}`,
+          `/api/library`,
           {
             title: title,
             url: paper.url,

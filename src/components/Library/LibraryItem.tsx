@@ -50,9 +50,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
     setUpdatingItem(true);
     try {
       await axios.put(
-        `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
-          session?.user.id
-        }`,
+        `/api/library?uuid=${encodeURIComponent(item.uuid)}`,
 
         { tags: Array.from(tags) },
         {
@@ -76,14 +74,11 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
 
   async function deletePaper() {
     try {
-      const resp = await axios.delete(
-        `/api/library?userId=${session?.user.id}&uuid=${item.uuid}`,
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
-      );
+      const resp = await axios.delete(`/api/library?uuid=${item.uuid}`, {
+        headers: {
+          Authorization: "Bearer " + session?.supabaseAccessToken,
+        },
+      });
       console.log(resp);
       toast.success("Paper deleted successfully");
     } catch (e) {
@@ -100,9 +95,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
     setUpdatingItem(true);
     try {
       await axios.put(
-        `/api/library?uuid=${encodeURIComponent(item.uuid)}&userId=${
-          session?.user.id
-        }`,
+        `/api/library?uuid=${encodeURIComponent(item.uuid)}`,
         {
           title,
           description,
@@ -295,7 +288,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                   <div className="flex flex-col gap-2">
                     <label htmlFor="description">Description</label>
                     <Textarea
-                    className="max-h-[100px]"
+                      className="max-h-[100px]"
                       id="description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
