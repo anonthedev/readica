@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Library from "@/components/Library/Library";
-import { Skeleton } from "@/components/ui/skeleton"; 
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +21,7 @@ import axios from "axios";
 import { User } from "@/types/types";
 
 export default function Profile() {
-  const { data: session, status } = useSession(); 
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -32,7 +32,7 @@ export default function Profile() {
       router.push("/login");
     }
     if (status === "authenticated" && session?.user) {
-      setUsername((session.user as User).username || ""); 
+      setUsername((session.user as User).username || "");
     }
   }, [status, router, session]);
 
@@ -49,21 +49,21 @@ export default function Profile() {
 
     setIsSaving(true);
     try {
-      const response = await axios.put(
+      const resp = await axios.put(
         "/api/user/username",
         { username: username.trim() },
         {
           headers: {
-            Authorization: `Bearer ${session?.supabaseAccessToken}`, 
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.supabaseAccessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
-      if (response.status === 200) {
+      if (resp.status === 200) {
         toast.success("Username updated successfully!");
-        router.refresh(); 
-        setIsDialogOpen(false); 
+        router.refresh();
+        setIsDialogOpen(false);
       } else {
         toast.error("Failed to update username. Unexpected status code.");
       }
@@ -122,23 +122,32 @@ export default function Profile() {
               </div>
             )}
             <div className="flex flex-col gap-1">
-              <h1 className="text-lg md:text-xl font-semibold">{session.user.name || "User Name"}</h1>
+              <h1 className="text-lg md:text-xl font-semibold">
+                {session.user.name || "User Name"}
+              </h1>
               <div className="flex flex-col items-start gap-1">
                 <span className="font-normal text-xs md:text-sm text-gray-400">
-                  @{(session.user as User).username} 
+                  @{(session.user as User).username}
                 </span>
                 <span className="font-normal text-xs md:text-xs text-gray-400">
                   {session.user.email}
                 </span>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant={"secondary"} className="py-1 px-3.5 text-gray-400 hover:text-gray-200">
+                    <Button
+                      variant={"secondary"}
+                      className="py-1 px-3.5 text-gray-400 hover:text-gray-200"
+                    >
                       Edit Username
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="w-fit">
                     <DialogHeader>
-                      <DialogTitle>{(session.user as User).username ? 'Edit Username' : 'Add Username'}</DialogTitle>
+                      <DialogTitle>
+                        {(session.user as User).username
+                          ? "Edit Username"
+                          : "Add Username"}
+                      </DialogTitle>
                       <DialogDescription>
                         Choose a unique username. Minimum 3 characters.
                       </DialogDescription>
@@ -156,10 +165,15 @@ export default function Profile() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button 
-                        type="submit" 
-                        onClick={handleSaveUsername} 
-                        disabled={isSaving || !username || username.trim().length < 3 || username.trim() === (session.user as User).username}
+                      <Button
+                        type="submit"
+                        onClick={handleSaveUsername}
+                        disabled={
+                          isSaving ||
+                          !username ||
+                          username.trim().length < 3 ||
+                          username.trim() === (session.user as User).username
+                        }
                       >
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
@@ -178,5 +192,5 @@ export default function Profile() {
     );
   }
 
-  return null; 
+  return null;
 }

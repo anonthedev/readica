@@ -44,18 +44,12 @@ interface Paper {
   favicon?: string;
 }
 
-interface ToolInvocationResult {
-  results: Paper[];
-}
-
-interface ToolInvocation {
-  state: string;
-  result?: ToolInvocationResult;
-}
-
 interface MessagePart {
   type: string;
-  toolInvocation?: ToolInvocation;
+  toolInvocation?: {
+    state: string;
+    result?: { results: Paper[] };
+  };
 }
 
 interface Message {
@@ -89,13 +83,13 @@ const PaperCard = memo(
 
     useEffect(() => {
       if (status === "ready" || status === "error") {
-        setTitle(paper.title||"")
-        setDescription(paper.summary||"")
-        setPdfLink(paper.url)
+        setTitle(paper.title || "");
+        setDescription(paper.summary || "");
+        setPdfLink(paper.url);
         if (paper.author?.includes(";")) {
-          setAuthors(new Set(paper.author.split(";")))
-        }else{
-          setAuthors(new Set(paper.author?.split(",")))
+          setAuthors(new Set(paper.author.split(";")));
+        } else {
+          setAuthors(new Set(paper.author?.split(",")));
         }
       }
     }, [status]);
@@ -111,7 +105,7 @@ const PaperCard = memo(
             authors: Array.from(authors),
             description: description,
             pdf_link: pdfLink,
-            email: session?.user.email
+            email: session?.user.email,
           },
           {
             headers: {
@@ -161,117 +155,122 @@ const PaperCard = memo(
                     {turnacateString(paper.title || paper.url, 65)}
                   </h2>
                 </Link>
-                {status === "ready" || status === "error" && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-gray-800"
-                      >
-                        <EllipsisVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            Add to Library
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Add Paper to Library</DialogTitle>
-                            <div className="my-2 flex flex-col gap-2">
-                              <div className="flex flex-col gap-3">
-                                <h2 className="font-semibold text-md">
-                                  Paper Details:
-                                </h2>
-                                <div className="flex flex-row gap-2 w-full">
-                                  <div className="w-1/2">
-                                    <label htmlFor="input">Title</label>
-                                    <Input
-                                      placeholder="Title"
-                                      value={title}
-                                      onChange={(e) => setTitle(e.target.value)}
-                                    />
+                {status === "ready" ||
+                  (status === "error" && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-gray-800"
+                        >
+                          <EllipsisVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              Add to Library
+                            </DropdownMenuItem>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add Paper to Library</DialogTitle>
+                              <div className="my-2 flex flex-col gap-2">
+                                <div className="flex flex-col gap-3">
+                                  <h2 className="font-semibold text-md">
+                                    Paper Details:
+                                  </h2>
+                                  <div className="flex flex-row gap-2 w-full">
+                                    <div className="w-1/2">
+                                      <label htmlFor="input">Title</label>
+                                      <Input
+                                        placeholder="Title"
+                                        value={title}
+                                        onChange={(e) =>
+                                          setTitle(e.target.value)
+                                        }
+                                      />
+                                    </div>
+                                    <div className="w-1/2">
+                                      <label htmlFor="input">
+                                        PDF Link of the Paper
+                                      </label>
+                                      <Input
+                                        placeholder="PDF Link"
+                                        value={pdfLink}
+                                        onChange={(e) =>
+                                          setPdfLink(e.target.value)
+                                        }
+                                      />
+                                    </div>
                                   </div>
-                                  <div className="w-1/2">
-                                    <label htmlFor="input">
-                                      PDF Link of the Paper
+                                  <div>
+                                    <label htmlFor="Input">Authors</label>
+                                    <MultiInput
+                                      setInputs={setAuthors}
+                                      inputs={authors}
+                                      currentInput={currentAuthor}
+                                      setCurrentInput={setCurrentAuthor}
+                                      placeholder="Press Enter after typing an Author's Name"
+                                    />
+                                    <div className="flex flex-row gap-2 flex-wrap my-2 max-h-[100px] overflow-y-auto">
+                                      {authors &&
+                                        authors.size > 0 &&
+                                        Array.from(authors).map((author) => (
+                                          <span
+                                            key={author}
+                                            className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
+                                          >
+                                            <p>{author}</p>
+                                            <X
+                                              size={12}
+                                              className="cursor-pointer"
+                                              onClick={() => {
+                                                setAuthors((prevauthors) => {
+                                                  const newauthors = new Set(
+                                                    prevauthors
+                                                  );
+                                                  newauthors.delete(author);
+                                                  return newauthors;
+                                                });
+                                              }}
+                                            />
+                                          </span>
+                                        ))}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label htmlFor="textarea">
+                                      Description
                                     </label>
-                                    <Input
-                                      placeholder="PDF Link"
-                                      value={pdfLink}
+                                    <Textarea
+                                      className="max-h-[100px]"
+                                      placeholder="Description"
+                                      value={description}
                                       onChange={(e) =>
-                                        setPdfLink(e.target.value)
+                                        setDescription(e.target.value)
                                       }
                                     />
                                   </div>
                                 </div>
-                                <div>
-                                  <label htmlFor="Input">Authors</label>
-                                  <MultiInput
-                                    setInputs={setAuthors}
-                                    inputs={authors}
-                                    currentInput={currentAuthor}
-                                    setCurrentInput={setCurrentAuthor}
-                                    placeholder="Press Enter after typing an Author's Name"
-                                  />
-                                  <div className="flex flex-row gap-2 flex-wrap my-2 max-h-[100px] overflow-y-auto">
-                                    {authors &&
-                                      authors.size > 0 &&
-                                      Array.from(authors).map((author) => (
-                                        <span
-                                          key={author}
-                                          className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
-                                        >
-                                          <p>{author}</p>
-                                          <X
-                                            size={12}
-                                            className="cursor-pointer"
-                                            onClick={() => {
-                                              setAuthors((prevauthors) => {
-                                                const newauthors = new Set(
-                                                  prevauthors
-                                                );
-                                                newauthors.delete(author);
-                                                return newauthors;
-                                              });
-                                            }}
-                                          />
-                                        </span>
-                                      ))}
-                                  </div>
-                                </div>
-                                <div>
-                                  <label htmlFor="textarea">Description</label>
-                                  <Textarea
-                                    className="max-h-[100px]"
-                                    placeholder="Description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
                               </div>
-                            </div>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <Button
-                              onClick={addToLibrary}
-                              disabled={uploadPaperBtnDisabled}
-                            >
-                              Add Paper
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button
+                                onClick={addToLibrary}
+                                disabled={uploadPaperBtnDisabled}
+                              >
+                                Add Paper
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ))}
               </div>
               <p className="text-gray-400 text-xs">
                 {turnacateString(paper.author || "", 50)}

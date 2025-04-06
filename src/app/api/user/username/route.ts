@@ -44,11 +44,43 @@ export async function PUT(req: NextRequest) {
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
-        { error: "Username can only contain letters, numbers, and underscores (_)." },
+        {
+          error:
+            "Username can only contain letters, numbers, and underscores (_).",
+        },
         { status: 400 }
       );
     }
 
+    const RESERVED_USERNAMES = new Set([
+      "profile",
+      "dashboard",
+      "library",
+      "discover",
+      "reader",
+      "notes",
+      "login",
+      "signin",
+      "signup",
+      "logout",
+      "onboarding",
+      "username",
+      "settings",
+      "admin",
+      "root",
+      "api",
+      "auth",
+      "user",
+      "public",
+      "static",
+    ]);
+
+    if (RESERVED_USERNAMES.has(username.toLowerCase())) {
+      return NextResponse.json(
+        { error: "This username cannot be used." },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Error in username body", error);
     return NextResponse.json(
