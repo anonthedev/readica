@@ -50,6 +50,7 @@ export async function PUT(req: NextRequest) {
     }
 
   } catch (error) {
+    console.error("Error in username body", error);
     return NextResponse.json(
       { error: "Invalid request body" },
       { status: 400 }

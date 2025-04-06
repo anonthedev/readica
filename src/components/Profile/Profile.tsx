@@ -16,12 +16,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { User } from "@/types/types";
 
 export default function Profile() {
-  const { data: session, status, update: updateSession } = useSession(); 
+  const { data: session, status } = useSession(); 
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -32,7 +32,7 @@ export default function Profile() {
       router.push("/login");
     }
     if (status === "authenticated" && session?.user) {
-      setUsername((session.user as any).username || ""); 
+      setUsername((session.user as User).username || ""); 
     }
   }, [status, router, session]);
 
@@ -41,7 +41,7 @@ export default function Profile() {
       toast.error("Username must be at least 3 characters long.");
       return;
     }
-    if (username.trim() === (session?.user as any)?.username) {
+    if (username.trim() === (session?.user as User)?.username) {
       toast.info("Username is the same.");
       setIsDialogOpen(false);
       return;
@@ -124,22 +124,21 @@ export default function Profile() {
             <div className="flex flex-col gap-1">
               <h1 className="text-lg md:text-xl font-semibold">{session.user.name || "User Name"}</h1>
               <div className="flex flex-col items-start gap-1">
-                <span className="font-normal text-xs md:text-base text-gray-400">
-                  @{(session.user as any).username} 
+                <span className="font-normal text-xs md:text-sm text-gray-400">
+                  @{(session.user as User).username} 
                 </span>
-                <span className="font-normal text-xs md:text-base text-gray-400">
+                <span className="font-normal text-xs md:text-xs text-gray-400">
                   {session.user.email}
                 </span>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button variant={"secondary"} className="py-1 px-3.5 text-gray-400 hover:text-gray-200">
-                      {/* <Pencil className="h-4 w-4" /> */}
                       Edit Username
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="w-fit">
                     <DialogHeader>
-                      <DialogTitle>{(session.user as any).username ? 'Edit Username' : 'Add Username'}</DialogTitle>
+                      <DialogTitle>{(session.user as User).username ? 'Edit Username' : 'Add Username'}</DialogTitle>
                       <DialogDescription>
                         Choose a unique username. Minimum 3 characters.
                       </DialogDescription>
@@ -160,7 +159,7 @@ export default function Profile() {
                       <Button 
                         type="submit" 
                         onClick={handleSaveUsername} 
-                        disabled={isSaving || !username || username.trim().length < 3 || username.trim() === (session.user as any).username}
+                        disabled={isSaving || !username || username.trim().length < 3 || username.trim() === (session.user as User).username}
                       >
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>

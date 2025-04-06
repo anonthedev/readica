@@ -3,6 +3,7 @@ import { SupabaseAdapter } from "@auth/supabase-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import jwt from "jsonwebtoken";
 import { supabaseClient } from "@/lib/supabase";
+import { User } from "@/types/types";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -50,7 +51,7 @@ export const authOptions: NextAuthOptions = {
           if (error) {
             console.error("Error fetching username for session:", error);
           } else if (userData) {
-            (session.user as any).username = userData.username;
+            (session.user as User).username = userData.username;
           }
         } catch (dbError) {
           console.error("Database error fetching username:", dbError);
