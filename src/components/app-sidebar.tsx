@@ -45,11 +45,11 @@ const items = [
     url: "/dashboard",
     icon: Library,
   },
-  {
-    title: "Notes",
-    url: "/reader",
-    icon: NotebookPen,
-  },
+  // {
+  //   title: "Notes",
+  //   url: "/reader",
+  //   icon: NotebookPen,
+  // },
   {
     title: "Profile",
     url: "/profile",
