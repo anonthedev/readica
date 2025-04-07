@@ -20,11 +20,11 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2 h-full w-full">
+    <div className="flex flex-col gap-2 items-center justify-center h-full w-full">
         <h1 className="text-2xl font-bold font-inter">Sign In</h1>
         <Button
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          className="w-1/2 h-auto flex flex-row items-center gap-2 rounded-lg bg-transparent border px-4 py-2 font-inter"
+          className="w-1/4 h-auto flex flex-row items-center gap-2 rounded-lg bg-transparent border px-4 py-2 font-inter"
         >
           <svg
             width="24"
@@ -52,6 +52,6 @@ export default function Login() {
           </svg>
           Sign in with Google
         </Button>
-      </div>
+    </div>
   );
 }
