@@ -193,22 +193,6 @@ export default function PDFViewer({ url }: PDFViewerProps) {
           <span className="text-sm">{Math.round(scale * 100)}%</span>
         </div>
         <div className="flex items-center space-x-2">
-          {/* <select
-            value={currentPage}
-            onChange={(e) => {
-              const page = parseInt(e.target.value);
-              setCurrentPage(page);
-              scrollToPage(page);
-            }}
-            className="p-1 border rounded"
-            disabled={isLoading}
-          >
-            {[...Array(numPages)].map((_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Page {i + 1}
-              </option>
-            ))}
-          </select> */}
           <Input
             className="w-[50px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             type="number"
