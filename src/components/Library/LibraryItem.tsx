@@ -126,7 +126,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
       key={item.uuid}
       className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
     >
-      <Link href={item.pdf_link as string} target="_blank">
+      <Link href={`#`} target="_blank">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 className="font-medium text-lg max-w-[25ch]" title={item.title}>

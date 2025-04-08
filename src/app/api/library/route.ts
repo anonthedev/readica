@@ -9,7 +9,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
   try {
+    const paper_uuid = req.nextUrl.searchParams.get("uuid");
     const userId = req.nextUrl.searchParams.get("userId");
+    console.log(userId, paper_uuid)
     const authHeader = req.headers.get("Authorization");
 
     if (!userId || !authHeader) {
@@ -22,13 +24,46 @@ export async function GET(req: NextRequest) {
     const token = authHeader?.split(" ")[1];
     const supabase = supabaseClient(token);
 
+    if (paper_uuid) {
+      const { data: library, error } = await supabase
+        .from("library")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("uuid", paper_uuid);
+
+      if (error) {
+        return NextResponse.json(
+          {
+            message: "Couldn't fetch paper.",
+          },
+          { status: 500 }
+        );
+      }
+
+      if (!library || !Array.isArray(library)) {
+        return NextResponse.json(
+          {
+            message: "No library data found",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(library, { status: 200 });
+    }
+
     const { data: library, error } = await supabase
       .from("library")
       .select("*")
       .eq("user_id", userId);
 
     if (error) {
-      throw error;
+      return NextResponse.json(
+        {
+          message: "Internal server error",
+        },
+        { status: 500 }
+      );
     }
 
     if (!library || !Array.isArray(library)) {
