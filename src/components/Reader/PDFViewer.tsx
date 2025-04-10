@@ -1,236 +1,323 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import { MinusCircle, PlusCircle, RotateCcw, Loader2 } from "lucide-react";
+import { GlobalWorkerOptions } from "pdfjs-dist";
+import {
+  Root,
+  Pages,
+  Page,
+  CanvasLayer,
+  TextLayer,
+  HighlightLayer,
+  useSelectionDimensions,
+  usePdf,
+  calculateHighlightRects,
+  SearchResult,
+  usePdfJump,
+  useSearch,
+  Search,
+  ZoomOut,
+  CurrentZoom,
+  ZoomIn,
+  AnnotationLayer,
+} from "@anaralabs/lector";
+import { SelectionTooltip } from "@anaralabs/lector";
+import "pdfjs-dist/web/pdf_viewer.css";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
-interface PDFViewerProps {
-  url: string;
+import { useDebounce } from "use-debounce";
+import { useEffect, useState } from "react";
+import { Input } from "../ui/input";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  SearchIcon,
+  Sidebar,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from "lucide-react";
+
+GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.mjs",
+  import.meta.url
+).toString();
+
+export default function PDFViewer({ url }: { url: string }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  return (
+    <Root
+      source={url}
+      className="w-1/2 max-h-screen"
+      loader={<div className="p-4">Loading...</div>}
+      zoomOptions={{
+        minZoom: 0.5,
+        maxZoom: 10,
+      }}
+    >
+      <div
+        className={`${
+          sidebarOpen ? "absolute" : "hidden"
+        } flex flex-col h-full bg-background z-10 p-2 duration-150 transition-all`}
+      >
+        <Button
+          variant={"ghost"}
+          size={"icon"}
+          className="self-end p-1"
+          onClick={() => {
+            setSidebarOpen(false);
+          }}
+        >
+          <Sidebar size={16} />
+        </Button>
+        <Search>
+          <SearchUI />
+        </Search>
+      </div>
+      <div className=" border-b p-1 flex items-center justify-center text-sm gap-1">
+        <Button
+          className=""
+          variant={"ghost"}
+          onClick={() => {
+            setSidebarOpen(true);
+          }}
+        >
+          <SearchIcon size={16} />
+        </Button>
+        <div className="flex flex-row gap-0.5 items-center justify-center">
+          <ZoomOut className="px-3 py-1 cursor-pointer ">
+            <ZoomOutIcon size={15} />
+          </ZoomOut>
+          <CurrentZoom className=" rounded-full px-3 py-1 border text-center w-16" />
+          <ZoomIn className="px-3 py-1 cursor-pointer">
+            <ZoomInIcon size={15} />
+          </ZoomIn>
+          <PageNavigationButtons />
+        </div>
+      </div>
+      <HighlightLayerContent />
+
+    </Root>
+  );
 }
 
-type RenderTask = {
-  promise: Promise<void>;
-  cancel: () => void;
-};
+const PageNavigationButtons = () => {
+  const pages = usePdf((state) => state.pdfDocumentProxy?.numPages);
+  const currentPage = usePdf((state) => state.currentPage);
+  const [pageNumber, setPageNumber] = useState<string | number>(currentPage);
+  const { jumpToPage } = usePdfJump();
 
-export default function PDFViewer({ url }: PDFViewerProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [scale, setScale] = useState<number>(0.5);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<{
-    loaded: number;
-    total: number;
-  }>({ loaded: 0, total: 0 });
-  const renderTasks = useRef<RenderTask[]>([]);
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      jumpToPage(currentPage - 1, { behavior: "auto" });
+    }
+  };
 
-  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.1, 3));
-  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.25));
-  const handleResetZoom = () => setScale(0.5);
+  const handleNextPage = () => {
+    if (currentPage < pages) {
+      jumpToPage(currentPage + 1, { behavior: "auto" });
+    }
+  };
 
   useEffect(() => {
-    let isCancelled = false;
-    setIsLoading(true);
-    setLoadingProgress({ loaded: 0, total: 0 });
+    setPageNumber(currentPage);
+  }, [currentPage]);
 
-    async function renderPages() {
-      const pdfJS = await import("pdfjs-dist/build/pdf");
-      pdfJS.GlobalWorkerOptions.workerSrc =
-        window.location.origin + "/pdf.worker.min.mjs";
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        onClick={handlePreviousPage}
+        disabled={currentPage <= 1}
+        className="rounded-full disabled:opacity-40"
+        aria-label="Previous page"
+        size={"icon"}
+        variant={"ghost"}
+      >
+        <ChevronLeftIcon />
+      </Button>
 
-      try {
-        const loadingTask = pdfJS.getDocument(url);
-        //@ts-expect-error
-        loadingTask.onProgress = (progress) => {
-          setLoadingProgress({
-            loaded: progress.loaded,
-            total: progress.total,
-          });
-        };
-
-        const pdf = await loadingTask.promise;
-        if (isCancelled) return;
-
-        setNumPages(pdf.numPages);
-        const container = containerRef.current;
-        if (!container) return;
-
-        while (container.firstChild) {
-          container.removeChild(container.firstChild);
-        }
-
-        renderTasks.current.forEach((task) => task?.cancel());
-        renderTasks.current = [];
-
-        const devicePixelRatio = window.devicePixelRatio || 1;
-        const screenDPI = 96 * devicePixelRatio;
-
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          if (isCancelled) return;
-
-          const page = await pdf.getPage(pageNum);
-
-          const desiredDPI = 300;
-          const dpiScale = desiredDPI / screenDPI;
-          const finalScale = scale * dpiScale;
-
-          const viewport = page.getViewport({ scale: finalScale });
-
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          if (!context) continue;
-
-          const outputScale = devicePixelRatio;
-          canvas.width = Math.floor(viewport.width * outputScale);
-          canvas.height = Math.floor(viewport.height * outputScale);
-
-          canvas.style.width = Math.floor(viewport.width) + "px";
-          canvas.style.height = Math.floor(viewport.height) + "px";
-          canvas.className = "mb-4";
-          canvas.setAttribute("data-page", pageNum.toString());
-
-          context.scale(outputScale, outputScale);
-
-          const observer = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                  setCurrentPage(
-                    parseInt(entry.target.getAttribute("data-page") || "1")
-                  );
-                }
-              });
-            },
-            { threshold: 0.5 }
-          );
-          observer.observe(canvas);
-
-          container.appendChild(canvas);
-
-          const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-            enableWebGL: true,
-            renderInteractiveForms: true,
-          };
-
-          const renderTask = page.render(renderContext);
-          renderTasks.current.push(renderTask);
-
-          try {
-            await renderTask.promise;
-            if (!isCancelled) {
-              setLoadingProgress((prev) => ({
-                ...prev,
-                loaded: pageNum,
-              }));
-            }
-          } catch (error: any) {
-            if (error.name === "RenderingCancelledException") {
-              console.log(`Page ${pageNum} rendering cancelled`);
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          value={pageNumber}
+          onChange={(e) => setPageNumber(e.target.value)}
+          onBlur={(e) => {
+            const value = Number(e.target.value);
+            if (value >= 1 && value <= pages && currentPage !== value) {
+              jumpToPage(value, { behavior: "auto" });
             } else {
-              console.error(`Error rendering page ${pageNum}:`, error);
+              setPageNumber(currentPage);
             }
-          }
-        }
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error loading PDF:", error);
-        setIsLoading(false);
-      }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.currentTarget.blur();
+            }
+          }}
+          className="w-12 h-7 text-center border rounded-md text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
+        />
+        <span className="text-sm text-gray-500 font-medium">
+          / {pages || 1}
+        </span>
+      </div>
+
+      <Button
+        onClick={handleNextPage}
+        disabled={currentPage >= pages}
+        className="rounded-full disabled:opacity-40"
+        aria-label="Next page"
+        size={"icon"}
+        variant={"ghost"}
+      >
+        <ChevronRightIcon />
+      </Button>
+    </div>
+  );
+};
+
+//Highligt
+
+const HighlightLayerContent = () => {
+  const selectionDimensions = useSelectionDimensions();
+  const setHighlights = usePdf((state) => state.setHighlight);
+
+  const handleHighlight = () => {
+    const dimension = selectionDimensions.getDimension();
+    if (dimension && !dimension.isCollapsed) {
+      setHighlights(dimension.highlights);
     }
-
-    renderPages();
-
-    return () => {
-      isCancelled = true;
-      renderTasks.current.forEach((task) => task?.cancel());
-    };
-  }, [url, scale]);
-
-  const scrollToPage = (pageNum: number) => {
-    const canvas = containerRef.current?.querySelector(
-      `[data-page="${pageNum}"]`
-    );
-    canvas?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div className="flex flex-col h-full w-1/2">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={handleZoomOut}
-            variant={"ghost"}
-            size={"icon"}
-            className="p-2 rounded-full"
-            aria-label="Zoom out"
-            disabled={isLoading}
-          >
-            <MinusCircle className="w-5 h-5" />
-          </Button>
-          <Button
-            variant={"ghost"}
-            size={"icon"}
-            onClick={handleResetZoom}
-            className="p-2 rounded-full"
-            aria-label="Reset zoom"
-            disabled={isLoading}
-          >
-            <RotateCcw className="w-5 h-5" />
-          </Button>
-          <Button
-            variant={"ghost"}
-            size={"icon"}
-            onClick={handleZoomIn}
-            className="p-2 rounded-full"
-            aria-label="Zoom in"
-            disabled={isLoading}
-          >
-            <PlusCircle className="w-5 h-5" />
-          </Button>
-          <span className="text-sm">{Math.round(scale * 100)}%</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Input
-            className="w-[50px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            type="number"
-            value={currentPage}
-            // min={1}
-            max={numPages}
-            onChange={(e) => {
-                if (!isNaN(parseInt(e.target.value))) {
-                    setCurrentPage(parseInt(e.target.value));
-                    scrollToPage(parseInt(e.target.value));
-                }
-            }}
-          />
-          <span className="text-sm text-gray-600">of {numPages}</span>
-        </div>
-      </div>
+    <Pages className="p-4 w-full">
+      <Page>
+        {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />}
+        <CanvasLayer />
+        <TextLayer />
+        <AnnotationLayer />
+        <HighlightLayer className="bg-yellow-200/70" />
+      </Page>
+    </Pages>
+  );
+};
 
-      <div className="relative flex-1 h-full">
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-50">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-2" />
-            <div className="text-sm text-gray-600">
-              {loadingProgress.total
-                ? `Loading ${Math.round(
-                    (loadingProgress.loaded / loadingProgress.total) * 100
-                  )}%`
-                : "Loading PDF..."}
-            </div>
-          </div>
-        )}
-        <div
-          ref={containerRef}
-          className="h-full overflow-y-auto bg-gray-50"
-          style={{
-            WebkitFontSmoothing: "subpixel-antialiased",
-            textRendering: "optimizeLegibility",
-          }}
+export const CustomSelect = ({ onHighlight }: { onHighlight: () => void }) => {
+  return (
+    <SelectionTooltip>
+      <div className="flex flex-col bg-white p-2">
+        <Textarea placeholder="Enter comment" cols={30} />
+        <Button
+          className="w-fit shadow-lg rounded-md px-3 py-1"
+          onClick={onHighlight}
+        >
+          Highlight
+        </Button>
+      </div>
+    </SelectionTooltip>
+  );
+};
+
+interface ResultItemProps {
+  result: SearchResult;
+}
+
+//Search
+
+const ResultItem = ({ result }: ResultItemProps) => {
+  const { jumpToHighlightRects } = usePdfJump();
+  const getPdfPageProxy = usePdf((state) => state.getPdfPageProxy);
+
+  const onClick = async () => {
+    const pageProxy = getPdfPageProxy(result.pageNumber);
+    const rects = await calculateHighlightRects(pageProxy, {
+      pageNumber: result.pageNumber,
+      text: result.text,
+      matchIndex: result.matchIndex,
+    });
+    jumpToHighlightRects(rects, "pixels");
+  };
+
+  return (
+    <div className="flex py-2 flex-col cursor-pointer" onClick={onClick}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm ">{result.text}</p>
+      </div>
+      <div className="flex items-center gap-4 text-sm">
+        <span className="ml-auto">Page {result.pageNumber}</span>
+      </div>
+    </div>
+  );
+};
+
+interface ResultGroupProps {
+  title: string;
+  results: SearchResult[];
+  displayCount?: number;
+}
+
+const ResultGroup = ({ title, results, displayCount }: ResultGroupProps) => {
+  if (!results.length) return null;
+
+  const displayResults = displayCount
+    ? results.slice(0, displayCount)
+    : results;
+
+  console.log(results);
+
+  return (
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium ">{title}</h3>
+      <div className="divide-y divide-gray-100">
+        {displayResults.map((result) => (
+          <ResultItem
+            key={`${result.pageNumber}-${result.matchIndex}`}
+            result={result}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export function SearchUI() {
+  const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText] = useDebounce(searchText, 500);
+  const [limit, setLimit] = useState(5);
+  const { searchResults: results, search } = useSearch();
+
+  useEffect(() => {
+    setLimit(5);
+    search(debouncedSearchText, { limit: 5 });
+  }, [debouncedSearchText]);
+
+  const handleLoadMore = async () => {
+    const newLimit = limit + 5;
+    await search(debouncedSearchText, { limit: newLimit });
+    setLimit(newLimit);
+  };
+
+  console.log(results);
+
+  return (
+    <div className="flex flex-col max-w-[30ch] text-wrap h-full">
+      <div className="gap-3 px-4 py-4 border-b border-gray-200 ">
+        <Input
+          type="text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="Search in document..."
+          className="px-4 py-2 border rounded-lg"
         />
+      </div>
+      <div className="flex-1 overflow-y-auto px-4">
+        <div className="py-4">
+          <ResultGroup
+            title={searchText}
+            results={[...results.exactMatches, ...results.fuzzyMatches]}
+          />
+          {results.hasMoreResults && (
+            <div className="flex justify-center mt-4">
+              <Button onClick={handleLoadMore}>Load More</Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
