@@ -16,7 +16,7 @@ import {
   ZoomOut,
   CurrentZoom,
   ZoomIn,
-  AnnotationLayer,
+  CustomLayer,
 } from "@anaralabs/lector";
 import { SelectionTooltip } from "@anaralabs/lector";
 import "pdfjs-dist/web/pdf_viewer.css";
@@ -24,16 +24,19 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 
 import { useDebounce } from "use-debounce";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Input } from "../ui/input";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   SearchIcon,
-  Sidebar,
   ZoomInIcon,
   ZoomOutIcon,
+  PencilIcon,
+  EraserIcon,
+  HighlighterIcon,
 } from "lucide-react";
+import { useAnnotationState } from "./annotationStore";
 
 GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.mjs",
@@ -45,7 +48,7 @@ export default function PDFViewer({ url }: { url: string }) {
   return (
     <Root
       source={url}
-      className="w-1/2 max-h-screen"
+      className="w-1/2 h-[calc(100vh-40px)]"
       loader={<div className="p-4">Loading...</div>}
       zoomOptions={{
         minZoom: 0.5,
@@ -53,30 +56,24 @@ export default function PDFViewer({ url }: { url: string }) {
       }}
     >
       <div
-        className={`${
-          sidebarOpen ? "absolute" : "hidden"
-        } flex flex-col h-full bg-background z-10 p-2 duration-150 transition-all`}
+        className={`absolute top-[40px] h-[calc(100vh-40px)] bg-background z-10 p-2 transition-all duration-300 ease-in-out transform ${
+          sidebarOpen
+            ? "opacity-100 translate-x-0 visible"
+            : "opacity-0 -translate-x-full invisible"
+        } flex flex-col`}
       >
-        <Button
-          variant={"ghost"}
-          size={"icon"}
-          className="self-end p-1"
-          onClick={() => {
-            setSidebarOpen(false);
-          }}
-        >
-          <Sidebar size={16} />
-        </Button>
         <Search>
           <SearchUI />
         </Search>
       </div>
-      <div className=" border-b p-1 flex items-center justify-center text-sm gap-1">
+
+      <div className=" border-b p-1 flex items-center justify-center text-sm gap-1 h-[40px]">
+        <AnnotationToolbar/>
         <Button
           className=""
           variant={"ghost"}
           onClick={() => {
-            setSidebarOpen(true);
+            setSidebarOpen(!sidebarOpen);
           }}
         >
           <SearchIcon size={16} />
@@ -93,7 +90,6 @@ export default function PDFViewer({ url }: { url: string }) {
         </div>
       </div>
       <HighlightLayerContent />
-
     </Root>
   );
 }
@@ -186,12 +182,15 @@ const HighlightLayerContent = () => {
   };
 
   return (
-    <Pages className="p-4 w-full">
+    <Pages className="p-4 w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%]">
       <Page>
         {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />}
         <CanvasLayer />
         <TextLayer />
-        <AnnotationLayer />
+        {/* <AnnotationLayer /> */}
+        <CustomLayer>
+          {(pageNumber) => <AnnotationLayer pageNumber={pageNumber} />}
+        </CustomLayer>
         <HighlightLayer className="bg-yellow-200/70" />
       </Page>
     </Pages>
@@ -235,9 +234,12 @@ const ResultItem = ({ result }: ResultItemProps) => {
   };
 
   return (
-    <div className="flex py-2 flex-col cursor-pointer" onClick={onClick}>
+    <div
+      className="flex px-3 py-2 rounded-md flex-col cursor-pointer hover:bg-accent"
+      onClick={onClick}
+    >
       <div className="flex-1 min-w-0">
-        <p className="text-sm ">{result.text}</p>
+        <p className="text-sm text-ellipsis text-wrap">{result.text}</p>
       </div>
       <div className="flex items-center gap-4 text-sm">
         <span className="ml-auto">Page {result.pageNumber}</span>
@@ -263,16 +265,14 @@ const ResultGroup = ({ title, results, displayCount }: ResultGroupProps) => {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium ">{title}</h3>
-      <div className="divide-y divide-gray-100">
-        {displayResults.map((result) => (
-          <ResultItem
-            key={`${result.pageNumber}-${result.matchIndex}`}
-            result={result}
-          />
-        ))}
-      </div>
+      {displayResults.map((result) => (
+        <ResultItem
+          key={`${result.pageNumber}-${result.matchIndex}`}
+          result={result}
+        />
+      ))}
     </div>
+    // </div>
   );
 };
 
@@ -296,18 +296,16 @@ export function SearchUI() {
   console.log(results);
 
   return (
-    <div className="flex flex-col max-w-[30ch] text-wrap h-full">
-      <div className="gap-3 px-4 py-4 border-b border-gray-200 ">
-        <Input
-          type="text"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Search in document..."
-          className="px-4 py-2 border rounded-lg"
-        />
-      </div>
-      <div className="flex-1 overflow-y-auto px-4">
-        <div className="py-4">
+    <div className="flex flex-col w-[25ch] max-w-[25ch] text-wrap h-full">
+      <Input
+        type="text"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        placeholder="Search in document..."
+        className="px-4 py-2 border rounded-lg"
+      />
+      <div className="flex-1 overflow-y-auto">
+        <div className="py-2">
           <ResultGroup
             title={searchText}
             results={[...results.exactMatches, ...results.fuzzyMatches]}
@@ -322,3 +320,150 @@ export function SearchUI() {
     </div>
   );
 }
+
+function AnnotationToolbar() {
+  const { tool, setTool, strokeWidth, setStrokeWidth, strokeColor, setStrokeColor } = useAnnotationState();
+
+  return (
+    <>
+      <Button
+        variant={tool === "pen" ? "default" : "ghost"}
+        onClick={() => setTool(tool === "pen" ? "none" : "pen")}
+        size="icon"
+        className="w-8 h-8"
+      >
+        <PencilIcon size={16} />
+      </Button>
+      {tool === 'pen' || tool==='highlight'  && (
+        <div className="absolute top-[40px] z-10 flex flex-row bg-accent px-4 py-2 rounded-lg">
+          <Input
+            type="color"
+            value={strokeColor}
+            onChange={(e) => setStrokeColor(e.target.value)}
+            className="w-8 h-8 p-1"
+            title="Pen Color"
+          />
+          
+          <div className="flex items-center gap-1">
+             <Input
+                type="range"
+                min="1"
+                max="20"
+                step="1"
+                value={strokeWidth}
+                onChange={(e) => setStrokeWidth(Number(e.target.value))}
+                className="w-16 h-6 accent-primary"
+                title="Pen Width"
+              />
+              <span className="text-xs w-4 text-center">{strokeWidth}</span>
+          </div>
+
+        </div>
+      )}
+      <Button
+        variant={tool === "eraser" ? "default" : "ghost"}
+        onClick={() => setTool(tool === "eraser" ? "none" : "eraser")}
+        size="icon"
+        className="w-8 h-8"
+      >
+        <EraserIcon size={16} />
+      </Button>
+      <Button
+        variant={tool === "highlight" ? "default" : "ghost"}
+        onClick={() => setTool(tool === "highlight" ? "none" : "highlight")}
+        size="icon"
+        className="w-8 h-8"
+      >
+        <HighlighterIcon size={16} />
+      </Button>
+    </>
+  );
+};
+
+function AnnotationLayer ({ pageNumber }: { pageNumber: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { tool, strokeWidth, strokeColor, pushUndo, /* popUndo, pushRedo, popRedo, */ clearRedo } = useAnnotationState();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const resizeCanvas = () => {
+      const dataUrl = canvas.toDataURL();
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0);
+      img.src = dataUrl;
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    let annotating = false;
+
+    const start = (e: MouseEvent) => {
+      if (tool === "none") return;
+      annotating = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+      ctx.globalCompositeOperation = tool === "highlight" ? "multiply" : "source-over";
+    };
+
+    const draw = (e: MouseEvent) => {
+      if (!annotating) return;
+      ctx.globalCompositeOperation = tool === "highlight" ? "multiply" : "source-over";
+      if (tool === "eraser") {
+        ctx.clearRect(e.offsetX - 10, e.offsetY - 10, 20, 20);
+      } else if (tool === "pen" || tool === "highlight") {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = tool === "highlight" ? "rgba(255, 215, 0, 0.6)" : strokeColor;
+        ctx.lineWidth = tool === "highlight" ? 12 : strokeWidth;
+        ctx.lineCap = tool === "highlight" ? "butt" : "round";
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      }
+    };
+
+    const stop = () => {
+      if (annotating) {
+        annotating = false;
+        ctx.closePath();
+        ctx.globalCompositeOperation = "source-over";
+      }
+    };
+
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stop);
+    canvas.addEventListener("mouseleave", stop);
+
+    return () => {
+      canvas.removeEventListener("mousedown", start);
+      canvas.removeEventListener("mousemove", draw);
+      canvas.removeEventListener("mouseup", stop);
+      canvas.removeEventListener("mouseleave", stop);
+    };
+  }, [tool, strokeWidth, strokeColor]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute top-0 left-0 w-full h-full z-50 pointer-events-auto cursor-crosshair"
+    />
+  );
+};
