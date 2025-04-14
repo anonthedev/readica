@@ -68,7 +68,7 @@ export default function PDFViewer({ url }: { url: string }) {
       </div>
 
       <div className=" border-b p-1 flex items-center justify-center text-sm gap-1 h-[40px]">
-        <AnnotationToolbar />
+        {/* <AnnotationToolbar /> */}
         <Button
           className=""
           variant={"ghost"}
@@ -176,25 +176,27 @@ const HighlightLayerContent = () => {
 
   const handleHighlight = () => {
     const dimension = selectionDimensions.getDimension();
+    // console.log(dimension.highlights)
     if (dimension && !dimension.isCollapsed) {
       setHighlights(dimension.highlights);
     }
   };
 
   return (
-    <Pages className="p-4 w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%]">
+    <Pages className="w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%]">
       <Page>
-        {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />}
+        {/* {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />} */}
         <CanvasLayer />
-        <CustomLayer>
+        <TextLayer />
+        {/* <HighlightLayer className="bg-yellow-200/70" /> */}
+
+        {/* <CustomLayer>
           {(pageNumber) => (
             <>
-              <TextLayer />
-              <HighlightLayer className="bg-yellow-200/70" />
               <AnnotationLayer pageNumber={pageNumber} />
             </>
           )}
-        </CustomLayer>
+        </CustomLayer> */}
       </Page>
     </Pages>
   );
@@ -203,15 +205,12 @@ const HighlightLayerContent = () => {
 export const CustomSelect = ({ onHighlight }: { onHighlight: () => void }) => {
   return (
     <SelectionTooltip>
-      <div className="flex flex-col bg-white p-2">
-        <Textarea placeholder="Enter comment" cols={30} />
-        <Button
-          className="w-fit shadow-lg rounded-md px-3 py-1"
-          onClick={onHighlight}
-        >
-          Highlight
-        </Button>
-      </div>
+      <Button
+        className="w-fit rounded-md px-3 py-1"
+        onClick={onHighlight}
+      >
+        Highlight
+      </Button>
     </SelectionTooltip>
   );
 };
@@ -394,7 +393,7 @@ function AnnotationLayer({ pageNumber }: { pageNumber: number }) {
     strokeColor /* pushUndo,  popUndo, pushRedo, popRedo, clearRedo */,
   } = useAnnotationState();
 
-  function hexToRGBA(hex:string, alpha: number) {
+  function hexToRGBA(hex: string, alpha: number) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);

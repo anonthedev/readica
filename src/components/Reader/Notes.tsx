@@ -79,7 +79,7 @@ export default function Notes({
   }
 
   return (
-      <div className="text-editor unreset h-full w-1/2 border-2 p-2 flex flex-col gap-2">
+      <div className="text-editor unreset h-screen w-1/2 border-2 p-2 flex flex-col gap-2">
         <MenuBar editor={editor} saveNotesFunc={saveNotes} saving={saving} />
         <EditorContent editor={editor} />
       </div>
