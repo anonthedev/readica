@@ -29,22 +29,17 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
           }
         );
         
-        // API returns the library array directly
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           const paperData = response.data[0];
           
-          // Handle highlights if they exist
           if (paperData.highlighted_text) {
             // setHighlights(() => [...paperData.highlighted_text]);
           }
-          
-          // Update PDF URL to use HTTPS
           if (paperData.pdf_link) {
-            let updatedURL = paperData.pdf_link.replace(/^http:/, "https:");
+            const updatedURL = paperData.pdf_link.replace(/^http:/, "https:");
             setPdfURL(updatedURL);
           }
 
-          // Set notes from response or default
           if (paperData.notes) {
             setNotes(paperData.notes);
           } else {
@@ -71,7 +66,7 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
   }, [token, session?.user?.id]);
 
   return (
-  <main className="w-[calc(100vw-100px)] flex flex-row justify-center h-[calc(100vh-80px)]">
+  <main className="w-full flex flex-row justify-center h-[calc(100vh-80px)]">
       {!gettingData ? (
         <>
           <PDFViewer

@@ -28,8 +28,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
-// import "./reset.scss";
-// import "./notes.scss";
+import "./reset.scss";
+import "./notes.scss";
 
 export default function Notes({
   serverNotes,
@@ -79,8 +79,8 @@ export default function Notes({
   }
 
   return (
-      <div className="text-editor unreset h-full w-1/2 border-2 p-2 flex flex-col gap-2">
-        <MenuBar editor={editor} saveNotesFunc={saveNotes} />
+      <div className="text-editor unreset h-screen w-1/2 border-2 p-2 flex flex-col gap-2">
+        <MenuBar editor={editor} saveNotesFunc={saveNotes} saving={saving} />
         <EditorContent editor={editor} />
       </div>
   );
@@ -89,9 +89,10 @@ export default function Notes({
 type MenuBarProps = {
   editor: Editor | null;
   saveNotesFunc: MouseEventHandler<HTMLButtonElement>;
+  saving: boolean;
 };
 
-const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
+const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc, saving }) => {
   if (!editor) {
     return null;
   }
@@ -102,8 +103,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleBold().run()}
         className={
           editor.isActive("bold")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Bold"
       >
@@ -113,8 +114,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleItalic().run()}
         className={
           editor.isActive("italic")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Italic"
       >
@@ -124,8 +125,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleStrike().run()}
         className={
           editor.isActive("strike")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Strikethrough"
       >
@@ -135,8 +136,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         className={
           editor.isActive("heading", { level: 1 })
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Heading 1"
       >
@@ -146,8 +147,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         className={
           editor.isActive("heading", { level: 2 })
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Heading 2"
       >
@@ -157,8 +158,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         className={
           editor.isActive("heading", { level: 3 })
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Heading 3"
       >
@@ -168,8 +169,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleCode().run()}
         className={
           editor.isActive("code")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Inline Code"
       >
@@ -179,8 +180,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
         className={
           editor.isActive("codeBlock")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Code Block"
       >
@@ -190,8 +191,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().setParagraph().run()}
         className={
           editor.isActive("paragraph")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Paragraph"
       >
@@ -201,8 +202,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         className={
           editor.isActive("bulletList")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Bullet List"
       >
@@ -212,8 +213,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         className={
           editor.isActive("orderedList")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Ordered List"
       >
@@ -223,8 +224,8 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         className={
           editor.isActive("blockquote")
-            ? "active-menu-item menu-item"
-            : "non-active-menu-item menu-item"
+            ? "active-menu-item menu-item cursor-pointer"
+            : "non-active-menu-item menu-item cursor-pointer"
         }
         title="Blockquote"
       >
@@ -233,21 +234,21 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
       <button
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
         title="Horizontal Rule"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <Minus size={20} />
       </button>
       <button
         onClick={() => editor.chain().focus().undo().run()}
         title="Undo"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <Undo size={20} />
       </button>
       <button
         onClick={() => editor.chain().focus().redo().run()}
         title="Redo"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <Redo size={20} />
       </button>
@@ -259,29 +260,29 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc }) => {
           }
         }}
         title="Insert Image"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <ImageIcon size={20} />
       </button>
       <button
         onClick={() => editor.chain().focus().unsetAllMarks().run()}
         title="Remove Formatting"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <RemoveFormatting size={20} />
       </button>
       <button
         onClick={() => editor.chain().focus().clearNodes().run()}
         title="Clear Nodes"
-        className="menu-item"
+        className="menu-item cursor-pointer"
       >
         <X size={20} />
       </button>
       <button
-        // disabled={saving}
+        disabled={saving}
         onClick={saveNotesFunc}
         title="Save"
-        className="menu-item"
+        className="menu-item cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Save size={20} />
       </button>

@@ -41,6 +41,7 @@ export default function Library() {
   const [pdfLink, setPdfLink] = useState("");
   const [paperURL, setPaperURL] = useState("");
   const [allTags, setAllTags] = useState<Set<string>>(new Set());
+  const [uploadPaperDialogOpen, setUploadPaperDialogOpen] = useState(false);
 
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
@@ -104,15 +105,13 @@ export default function Library() {
   async function getPaperDetails() {
     try {
       const resp = await arxivSearch(paperURL);
-      if (
-        resp.data
-      ) {
+      if (resp.data) {
         const data = resp.data as {
           title: string;
           description: string;
           authors: string[];
           pdf_link: string;
-        }[]
+        }[];
         setTitle(data[0].title);
         setDescription(data[0].description);
         const authors = new Set(data[0].authors);
@@ -149,10 +148,13 @@ export default function Library() {
         }
       );
       toast.success("Paper Added Successfully");
-      // setTitle("");
-      // setDescription("");
-      // setAuthors(new Set());
-      // setPdfLink("");
+      getLib();
+      setUploadPaperDialogOpen(false);
+      setTitle("");
+      setDescription("");
+      setAuthors(new Set());
+      setPdfLink("");
+      setPaperURL("");
     } catch (error: unknown) {
       console.log(error);
       if (axios.isAxiosError(error)) {
@@ -165,7 +167,6 @@ export default function Library() {
         toast.error("Something went wrong");
       }
     } finally {
-      getLib()
       setUploadPaperBtnDisabled(false);
     }
   }
@@ -194,7 +195,7 @@ export default function Library() {
       <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">
-        <div
+          <div
             className="cursor-pointer hover:bg-accent p-1.5 rounded-md duration-200"
             onClick={() => {
               getLib();
@@ -207,7 +208,10 @@ export default function Library() {
               } text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 duration-200`}
             />
           </div>
-          <Dialog>
+          <Dialog
+            open={uploadPaperDialogOpen}
+            onOpenChange={setUploadPaperDialogOpen}
+          >
             <DialogTrigger className="flex flex-row items-center gap-2 py-1.5 px-3 bg-purple hover:cursor-pointer hover:bg-dark-purple text-white rounded-lg duration-200">
               <Plus size={20} />
               Add Papers
@@ -240,7 +244,9 @@ export default function Library() {
                         />
                       </div>
                       <div className="w-full md:w-1/2">
-                        <label htmlFor="input" className="text-sm">PDF Link of the Paper</label>
+                        <label htmlFor="input" className="text-sm">
+                          PDF Link of the Paper
+                        </label>
                         <Input
                           placeholder="PDF Link"
                           value={pdfLink}
@@ -302,7 +308,7 @@ export default function Library() {
               </DialogHeader>
               <DialogFooter>
                 <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
-                  {uploadPaperBtnDisabled ? "Uploading..." : "Upload Paper"}
+                  {"Upload Paper"}
                 </Button>
               </DialogFooter>
             </DialogContent>
