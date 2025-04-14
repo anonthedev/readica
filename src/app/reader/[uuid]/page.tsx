@@ -71,7 +71,7 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
   }, [token, session?.user?.id]);
 
   return (
-  <main className="w-[calc(100vw-100px)] flex flex-row justify-center h-[calc(100vh-80px)]">
+  <main className="w-full flex flex-row justify-center h-[calc(100vh-80px)]">
       {!gettingData ? (
         <>
           <PDFViewer
