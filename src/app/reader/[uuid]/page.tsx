@@ -29,22 +29,17 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
           }
         );
         
-        // API returns the library array directly
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           const paperData = response.data[0];
           
-          // Handle highlights if they exist
           if (paperData.highlighted_text) {
             // setHighlights(() => [...paperData.highlighted_text]);
           }
-          
-          // Update PDF URL to use HTTPS
           if (paperData.pdf_link) {
-            let updatedURL = paperData.pdf_link.replace(/^http:/, "https:");
+            const updatedURL = paperData.pdf_link.replace(/^http:/, "https:");
             setPdfURL(updatedURL);
           }
 
-          // Set notes from response or default
           if (paperData.notes) {
             setNotes(paperData.notes);
           } else {

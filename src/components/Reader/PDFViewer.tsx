@@ -21,7 +21,6 @@ import {
 import { SelectionTooltip } from "@anaralabs/lector";
 import "pdfjs-dist/web/pdf_viewer.css";
 import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
 
 import { useDebounce } from "use-debounce";
 import { useEffect, useState, useRef } from "react";
