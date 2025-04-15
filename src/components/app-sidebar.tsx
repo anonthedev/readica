@@ -47,7 +47,7 @@ const items = [
   },
   // {
   //   title: "Notes",
-  //   url: "/reader",
+  //   url: "/reader/*",
   //   icon: NotebookPen,
   // },
   {

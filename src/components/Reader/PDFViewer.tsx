@@ -51,7 +51,7 @@ export default function PDFViewer({ url }: { url: string }) {
       loader={<div className="p-4">Loading...</div>}
       zoomOptions={{
         minZoom: 0.5,
-        maxZoom: 10,
+        maxZoom: 5,
       }}
     >
       <div
@@ -182,7 +182,7 @@ const HighlightLayerContent = () => {
   };
 
   return (
-    <Pages className="w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%]">
+    <Pages className="w-full max-w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%] overflow-auto">
       <Page>
         {/* {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />} */}
         <CanvasLayer />
@@ -201,7 +201,7 @@ const HighlightLayerContent = () => {
   );
 };
 
-export const CustomSelect = ({ onHighlight }: { onHighlight: () => void }) => {
+function CustomSelect({ onHighlight }: { onHighlight: () => void }){
   return (
     <SelectionTooltip>
       <Button
@@ -220,7 +220,7 @@ interface ResultItemProps {
 
 //Search
 
-const ResultItem = ({ result }: ResultItemProps) => {
+function ResultItem({ result }: ResultItemProps){
   const { jumpToHighlightRects } = usePdfJump();
   const getPdfPageProxy = usePdf((state) => state.getPdfPageProxy);
 
@@ -255,7 +255,7 @@ interface ResultGroupProps {
   displayCount?: number;
 }
 
-const ResultGroup = ({ title, results, displayCount }: ResultGroupProps) => {
+function ResultGroup ({ title, results, displayCount }: ResultGroupProps) {
   if (!results.length) return null;
 
   const displayResults = displayCount
