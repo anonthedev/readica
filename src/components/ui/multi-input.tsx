@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Input } from "./input";
 
 export default function MultiInput({
@@ -32,6 +33,8 @@ export default function MultiInput({
             ) {
               setInputs((prevInputs) => new Set(prevInputs).add(currentInput));
               setCurrentInput("");
+            }else if (Array.from(inputs).length >= maxInputs) {
+              toast.error("You can only add up to 5 tags.");
             }
           } else {
             if (currentInput.length > 0) {

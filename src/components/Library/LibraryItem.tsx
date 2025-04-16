@@ -48,10 +48,14 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
 
   async function updateTags() {
     setUpdatingItem(true);
+    if (tags.size > 5) {
+      toast.error("You can only have up to 5 tags.");
+      setUpdatingItem(false);
+      return;
+    }
     try {
       await axios.put(
         `/api/library?uuid=${encodeURIComponent(item.uuid)}`,
-
         { tags: Array.from(tags) },
         {
           headers: {
@@ -59,14 +63,12 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
           },
         }
       );
-      toast.success("Tags Updated");
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.log(e.response?.data);
-        toast.error("Something went wrong");
-      } else {
-        toast.error("Something went wrong");
-      }
+      toast.success("Tags updated successfully.");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to update tags. Please try again."
+      );
     } finally {
       setUpdatingItem(false);
     }

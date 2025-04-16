@@ -158,6 +158,14 @@ export async function PUT(req: NextRequest) {
   console.log(uuid);
   const body = await req.json();
 
+  // Enforce tag limit of 5 if tags are being updated
+  if (body.tags && Array.isArray(body.tags) && body.tags.length > 5) {
+    return NextResponse.json(
+      { message: "You can only have up to 5 tags per item." },
+      { status: 400 }
+    );
+  }
+
   const dataToUpdate = body;
   console.log(dataToUpdate);
 
