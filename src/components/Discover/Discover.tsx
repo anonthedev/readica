@@ -44,25 +44,21 @@ interface Paper {
   favicon?: string;
 }
 
-interface ToolInvocationResult {
-  results: Paper[];
-}
-
 interface ToolInvocation {
   state: string;
-  result?: ToolInvocationResult;
-}
-
-interface MessagePart {
-  type: string;
-  toolInvocation?: ToolInvocation;
+  result?: {
+    results: Paper[];
+  };
 }
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  parts?: MessagePart[];
+  parts?: {
+    type: string;
+    toolInvocation?: ToolInvocation;
+  }[];
 }
 
 interface MessageItemProps {
@@ -88,15 +84,15 @@ const PaperCard = memo(
     const [uploadPaperBtnDisabled, setUploadPaperBtnDisabled] = useState(false);
 
     useEffect(() => {
-      if ((status === "ready" || status === "error")) {
-        console.log(status)
-        setTitle(paper.title||"")
-        setDescription(paper.summary||"")
-        setPdfLink(paper.url)
+      if (status === "ready" || status === "error") {
+        console.log(status);
+        setTitle(paper.title || "");
+        setDescription(paper.summary || "");
+        setPdfLink(paper.url);
         if (paper.author?.includes(";")) {
-          setAuthors(new Set(paper.author.split(";")))
-        }else{
-          setAuthors(new Set(paper.author?.split(",")))
+          setAuthors(new Set(paper.author.split(";")));
+        } else {
+          setAuthors(new Set(paper.author?.split(",")));
         }
       }
     }, [status]);
@@ -112,7 +108,7 @@ const PaperCard = memo(
             authors: Array.from(authors),
             description: description,
             pdf_link: pdfLink,
-            email: session?.user.email
+            email: session?.user.email,
           },
           {
             headers: {
@@ -386,7 +382,13 @@ export default function Discover() {
   return (
     <div className="flex flex-col gap-3 sm:gap-4 h-full w-full items-center p-2 sm:p-4 max-w-4xl mx-auto">
       <div className="flex-1 overflow-y-auto w-full space-y-3 sm:space-y-4 px-2 sm:px-4">
-        {memoizedMessages}
+        {messages.length === 0 ? (
+          <div className="w-full flex items-center justify-center h-full text-muted-foreground text-center py-16">
+            Find research papers on any topic or summarise research on any topic
+          </div>
+        ) : (
+          memoizedMessages
+        )}
       </div>
       <form
         onSubmit={onSubmit}

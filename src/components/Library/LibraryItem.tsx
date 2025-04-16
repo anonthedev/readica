@@ -124,7 +124,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   return (
     <div
       key={item.uuid}
-      className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-[#E2E8F0]/200"
+      className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-slate-800"
     >
       <Link href={`reader/${item.uuid}`} target="_blank">
         <div className="flex flex-col gap-3">
