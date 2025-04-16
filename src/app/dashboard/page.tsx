@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function page() {
   return (
   <>
-    <main className='w-full px-10'>
+    <main className='w-full px-4 md:px-10'>
         <Library/>
       </main>
   </>
