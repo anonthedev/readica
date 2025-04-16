@@ -1,5 +1,6 @@
-"use client";
+"use client"
 
+import Head from "next/head";
 import Notes from "@/components/Reader/Notes";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -7,7 +8,6 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import PDFViewer from "@/components/Reader/PDFViewer";
 import React from "react";
-
 
 export default function Page({ params }: { params: Promise<{ uuid: string }> }) {
   const {uuid} = React.use(params)
@@ -66,17 +66,28 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
   }, [token, session?.user?.id]);
 
   return (
-  <main className="w-full flex flex-row justify-center h-[calc(100vh-80px)]">
-      {!gettingData ? (
-        <>
-          <PDFViewer
-            url={pdfURL}
-          />
-          <Notes serverNotes={notes} uuid={uuid} />
-        </>
-      ) : (
-        <div className="self-center">Fetching data...</div>
-      )}
-    </main>
+    <>
+      <Head>
+        <title>Reader | Readica</title>
+        <meta name="description" content="Read and annotate academic papers in PDF format with Readica's online reader." />
+        <meta name="keywords" content="Readica, reader, PDF, annotate, academic papers, notes" />
+        <meta name="author" content="anonthedev" />
+        <meta property="og:title" content="Reader | Readica" />
+        <meta property="og:description" content="Read and annotate academic papers in PDF format with Readica's online reader." />
+        <meta property="og:type" content="website" />
+      </Head>
+      <main className="w-full flex flex-row justify-center h-[calc(100vh-80px)]">
+        {!gettingData ? (
+          <>
+            <PDFViewer
+              url={pdfURL}
+            />
+            <Notes serverNotes={notes} uuid={uuid} />
+          </>
+        ) : (
+          <div className="self-center">Fetching data...</div>
+        )}
+      </main>
+    </>
   );
 }

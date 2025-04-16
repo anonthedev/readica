@@ -1,21 +1,18 @@
-"use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import type { Metadata } from "next";
+import Home from "@/components/Home";
 
-export default function Home() {
-  const router = useRouter();
-  const { status } = useSession();
+export const metadata: Metadata = {
+  title: 'Home | Readica', 
+  description: 'Readica: Your personal academic paper library and reader. Organize, discover, and read research papers online.',
+  keywords: ['Readica', 'academic papers', 'research library', 'PDF reader', 'paper organizer', 'discover papers', 'online reader'],
+  authors: [{ name: 'anonthedev' }],
+  openGraph: {
+    title: 'Home | Readica',
+    description: 'Readica is your platform to organize, discover, and read academic research papers online.',
+    type: 'website',
+  },
+};
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (status === "authenticated") {
-      router.replace("/dashboard");
-    } else if (status === "unauthenticated") {
-      router.replace("/login");
-    }
-  }, [status, router]);
-
-  // Show redirecting signal while checking or redirecting
-  return <div className="w-full h-full text-center flex items-center justify-center">Redirecting...</div>;
+export default function Page() {
+  return <Home />;
 }
