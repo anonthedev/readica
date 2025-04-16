@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
   try {
     const paper_uuid = req.nextUrl.searchParams.get("uuid");
     const userId = req.nextUrl.searchParams.get("userId");
-    console.log(userId, paper_uuid)
     const authHeader = req.headers.get("Authorization");
 
     if (!userId || !authHeader) {

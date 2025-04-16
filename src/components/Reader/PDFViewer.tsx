@@ -187,7 +187,7 @@ const HighlightLayerContent = () => {
         {/* {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />} */}
         <CanvasLayer />
         <TextLayer />
-        {/* <HighlightLayer className="bg-yellow-200/70" /> */}
+        <HighlightLayer className="bg-yellow-200/70" />
 
         {/* <CustomLayer>
           {(pageNumber) => (
