@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
   //   return NextResponse.json({ error: "Internal server error during rate limit check" }, { status: 500 });
   // }
 
-  // --- Original API Logic Starts Here ---
   const { messages } = await req.json();
   const exa = new Exa("a5c2c4ef-5832-4299-8bbe-372279bf3164");
 
@@ -74,6 +73,7 @@ export async function POST(req: NextRequest) {
         summary: {
           query: "Abstract of the paper",
         },
+        livecrawl: "always"
       });
       const processedResults = results.reduce<typeof results>((acc, paper) => {
         // Skip if URL already exists or if no summary available
