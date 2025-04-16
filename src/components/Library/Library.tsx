@@ -191,7 +191,7 @@ export default function Library() {
   }
 
   return (
-    <div className="px-10 py-20 w-full flex flex-col gap-10">
+    <div className="py-20 w-full flex flex-col gap-10">
       <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">

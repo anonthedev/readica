@@ -105,7 +105,7 @@ export default function Profile() {
 
   if (status === "authenticated" && session?.user) {
     return (
-      <section className="my-8 w-full px-4 md:pr-10 py-5">
+      <section className="my-8 w-full px-4 md:px-10 py-5">
         <article className="flex flex-col gap-12 md:gap-16">
           <div className="flex flex-row items-center gap-4 md:gap-8">
             {session.user.image ? (
