@@ -1,3 +1,5 @@
+//Scira's codebase helped a lot here - https://github.com/zaidmukaddam/scira 
+
 import { streamText, tool } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
@@ -76,13 +78,8 @@ export async function POST(req: NextRequest) {
         livecrawl: "always"
       });
       const processedResults = results.reduce<typeof results>((acc, paper) => {
-        // Skip if URL already exists or if no summary available
         if (acc.some((p) => p.url === paper.url) || !paper.summary) return acc;
-
-        // Clean up summary (remove "Summary:" prefix if exists)
         const cleanSummary = paper.summary.replace(/^Summary:\s*/i, "");
-
-        // Clean up title (remove [...] suffixes)
         const cleanTitle = paper.title?.replace(/\s\[.*?\]$/, "");
 
         acc.push({
@@ -95,7 +92,6 @@ export async function POST(req: NextRequest) {
       }, []);
 
       const limitedResults = processedResults.slice(0, 10);
-      console.log(limitedResults);
       return {
         results: limitedResults,
       };
