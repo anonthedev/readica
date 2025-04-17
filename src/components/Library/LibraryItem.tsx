@@ -64,11 +64,15 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
         }
       );
       toast.success("Tags updated successfully.");
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Failed to update tags. Please try again."
-      );
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        toast.error(
+          e?.response?.data?.message ||
+            "Failed to update tags. Please try again."
+        );
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setUpdatingItem(false);
     }
