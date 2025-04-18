@@ -8,6 +8,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Session } from "next-auth";
+import { Analytics } from "@vercel/analytics/react"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,6 +38,7 @@ export default async function RootLayout({
         </SessionProvider>
         <Toaster />
       </body>
+      <Analytics/>
     </html>
   );
 }
