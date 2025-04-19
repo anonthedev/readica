@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 // import { supabaseClient } from "@/lib/supabase";
 import axios from "axios";
@@ -51,6 +51,7 @@ export default function Library() {
   const [loadingPapers, setLoadingPapers] = useState<boolean>(true);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // const supabase = supabaseClient(session?.supabaseAccessToken);
 
@@ -73,6 +74,30 @@ export default function Library() {
       setUploadPaperBtnDisabled(false);
     }
   }, [title, authors, pdfLink, paperURL]);
+
+  useEffect(() => {
+    const tagsArr = Array.from(selectedTags);
+    const params = new URLSearchParams(window.location.search);
+    if (tagsArr.length > 0) {
+      params.set("tags", tagsArr.join(","));
+    } else {
+      params.delete("tags");
+    }
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    if (window.location.search !== `?${params.toString()}`) {
+      router.replace(newUrl);
+    }
+  }, [selectedTags, router]);
+
+  useEffect(() => {
+    const tagsParam = searchParams.get("tags");
+    if (tagsParam) {
+      setSelectedTags(new Set(tagsParam.split(",")));
+    } else {
+      setSelectedTags(new Set());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get("tags")]);
 
   async function getLib() {
     setLoadingPapers(true);

@@ -381,6 +381,14 @@ export default function Discover() {
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4 h-full w-full items-center p-2 sm:p-4 max-w-4xl mx-auto">
+      {/* <div className="w-full flex justify-end mb-2">
+        <Button
+          variant="outline"
+          // onClick={handleNewChat}
+        >
+          New Chat
+        </Button>
+      </div> */}
       <div className="flex-1 overflow-y-auto w-full space-y-3 sm:space-y-4 px-2 sm:px-4">
         {messages.length === 0 ? (
           <div className="w-full flex items-center justify-center h-full text-muted-foreground text-center py-16">
@@ -397,7 +405,7 @@ export default function Discover() {
         <Input
           value={input}
           onChange={handleInputChange}
-          placeholder="Ask research related question..."
+          placeholder="Suggest me research papers on..."
           className="flex-1"
           disabled={status === "streaming"}
         />
@@ -412,6 +420,9 @@ export default function Discover() {
           )}
         </Button>
       </form>
+      <div className="text-sm text-muted-foreground text-center w-full">
+        Chats aren't saved
+      </div>
     </div>
   );
 }

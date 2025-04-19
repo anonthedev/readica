@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
         summary: {
           query: "Abstract of the paper",
         },
-        livecrawl: "always"
+        livecrawl: "auto",
+        excludeDomains: ["https://spiedigitallibrary.org"]
       });
       const processedResults = results.reduce<typeof results>((acc, paper) => {
         if (acc.some((p) => p.url === paper.url) || !paper.summary) return acc;
