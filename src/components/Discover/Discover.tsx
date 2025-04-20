@@ -421,7 +421,7 @@ export default function Discover() {
         </Button>
       </form>
       <div className="text-sm text-muted-foreground text-center w-full">
-        Chats aren't saved
+        Chats aren&apos;t saved
       </div>
     </div>
   );
