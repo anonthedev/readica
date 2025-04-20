@@ -42,7 +42,6 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   useEffect(() => {
     if (item.tags) {
       setTags(new Set(item.tags));
-      console.log(item.tags);
     }
   }, []);
 
@@ -126,6 +125,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
       setUpdatingItem(false);
     }
   }
+
 
   return (
     <div
@@ -313,7 +313,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                 </div>
                 <DialogFooter>
                   <Button
-                    disabled={updatingItem || !title || !pdfLink}
+                    disabled={updatingItem || !title}
                     onClick={updatePaperDetails}
                   >
                     {updatingItem ? "Updating..." : "Save Changes"}
