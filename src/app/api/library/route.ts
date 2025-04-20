@@ -2,6 +2,7 @@ import { supabaseClient } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import axios from "axios";
 
 export async function GET(req: NextRequest) {
   const session: Session | null = await getServerSession(authOptions);
@@ -106,44 +107,84 @@ export async function POST(req: NextRequest) {
   }
 
   const token = authHeader.split(" ")[1];
-
   const supabase = await supabaseClient(token);
 
-  const { data, error } = await supabase
-    .from("library")
-    .insert([
-      {
-        email: body.email,
-        user_id: userId,
-        title: body.title,
-        description: body.description,
-        authors: body.authors,
-        pdf_link: body.pdf_link,
-      },
-    ])
-    .select();
+  let insertData: any = {
+    email: body.email,
+    user_id: userId,
+    title: body.title,
+    description: body.description,
+    authors: body.authors,
+    // tags: body.tags, // Uncomment if tags are to be supported here
+  };
 
-  if (data) {
-    return NextResponse.json(data, { status: 200 });
+  if (body.file_id) {
+    insertData.file_id = body.file_id;
+    insertData.pdf_link = body.pdf_link || null;
+  } else if (body.pdf_link) {
+    insertData.pdf_link = body.pdf_link;
+    insertData.file_id = null;
   } else {
-    console.log(error);
-    if (error.code === "23505") {
-      return NextResponse.json(
-        {
-          error: "Paper is already in your library",
-          code: "23505",
-        },
-        { status: 409 }
-      );
+    return NextResponse.json(
+      { error: "Missing file_id or pdf_link" },
+      { status: 400 }
+    );
+  }
+
+  let fileIdToDelete: string | null = null;
+  if (body.file_id) fileIdToDelete = body.file_id;
+
+  try {
+    const { data, error } = await supabase
+      .from("library")
+      .insert([insertData])
+      .select();
+
+    if (data) {
+      console.log(data)
+      return NextResponse.json(data, { status: 200 });
     } else {
-      return NextResponse.json(
-        {
-          error: "Couldn't add paper to your library",
-          message: error,
-        },
-        { status: 500 }
-      );
+      console.log(error)
+      if (fileIdToDelete) {
+        try {
+          await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backblaze?fileId=${fileIdToDelete}`);
+        } catch (deleteErr) {
+          console.error("Failed to delete file from Backblaze after DB insert error", deleteErr);
+        }
+      }
+      if (error && error.code === "23505") {
+        return NextResponse.json(
+          {
+            error: "Paper is already in your library",
+            code: "23505",
+          },
+          { status: 409 }
+        );
+      } else {
+        return NextResponse.json(
+          {
+            error: "Couldn't add paper to your library",
+            message: error,
+          },
+          { status: 500 }
+        );
+      }
     }
+  } catch (error) {
+    if (fileIdToDelete) {
+      try {
+        await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backblaze?fileId=${fileIdToDelete}`);
+      } catch (deleteErr) {
+        console.error("Failed to delete file from Backblaze after exception", deleteErr);
+      }
+    }
+    return NextResponse.json(
+      {
+        error: "Couldn't add paper to your library (exception)",
+        message: error instanceof Error ? error.message : error,
+      },
+      { status: 500 }
+    );
   }
 }
 

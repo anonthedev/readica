@@ -24,9 +24,12 @@ import {
 import { FilterIcon, Plus, RefreshCcw, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { arxivSearch } from "@/lib/searchFunctions";
+import { extractPDFMetadata } from "@/lib/utils";
 
 import MultiInput from "../ui/multi-input";
 import { Textarea } from "../ui/textarea";
+import { Toaster } from "../ui/sonner";
+import { useRef } from "react";
 import { toast } from "sonner";
 import LibraryItem from "@/components/Library/LibraryItem";
 import LibraryLoading from "@/components/Library/LibraryLoading";
@@ -149,6 +152,10 @@ export default function Library() {
   }
 
   useEffect(() => {
+    setTitle("");
+    setDescription("");
+    setAuthors(new Set());
+    setPdfLink("");
     if (paperURL.includes("arxiv.org")) {
       getPaperDetails();
     }
@@ -196,6 +203,74 @@ export default function Library() {
     }
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      toast.error("No file selected");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("Only PDF files are supported");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File size should be less than 15MB");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      // Extract PDF metadata and set as default field values
+      const metadata = await extractPDFMetadata(file);
+      if (metadata.title) setTitle(metadata.title);
+      if (metadata.authors && metadata.authors.length > 0) setAuthors(new Set(metadata.authors));
+      if (metadata.subject) setDescription(metadata.subject); // or use subject as description fallback
+      // keywords and upload_date can be used if you add fields for them
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadResp = await axios.post("/api/backblaze", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const fileId = uploadResp.data.fileId;
+      // Use title/desc/authors from the form (now possibly set by metadata)
+      const paperDetails = {
+        title,
+        description,
+        authors: Array.from(authors),
+        file_id: fileId,
+        email: session?.user.email,
+      };
+      await axios.post(
+        "/api/library",
+        paperDetails,
+        {
+          headers: {
+            Authorization: "Bearer " + session?.supabaseAccessToken,
+          },
+        }
+      );
+      toast.success("Paper uploaded and added to library");
+      getLib();
+      setUploadPaperDialogOpen(false);
+      setTitle("");
+      setDescription("");
+      setAuthors(new Set());
+      setPdfLink("");
+      setPaperURL("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error: any) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.error(
+        error?.response?.data?.error || error.message || "Upload failed"
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   if (status === "loading") {
     return <p>Loading...</p>;
   }
@@ -217,6 +292,7 @@ export default function Library() {
 
   return (
     <div className="py-20 w-full flex flex-col gap-10">
+      {/* <Toaster /> */}
       <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">
@@ -328,12 +404,29 @@ export default function Library() {
                         }}
                       />
                     </div>
+                    <div className="flex flex-col gap-2 mt-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="application/pdf"
+                        onChange={handleFileUpload}
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full bg-purple/10 text-dark-purple border-purple hover:bg-purple/20"
+                        disabled={isUploading}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? "Uploading..." : "Upload PDF from Computer"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </DialogHeader>
               <DialogFooter>
                 <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
-                  {"Upload Paper"}
+                  {"Add Paper by Link"}
                 </Button>
               </DialogFooter>
             </DialogContent>

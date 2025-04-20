@@ -38,6 +38,20 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
           if (paperData.pdf_link) {
             const updatedURL = paperData.pdf_link.replace(/^http:/, "https:");
             setPdfURL(updatedURL);
+          } else if (paperData.file_id) {
+            // Fetch authorized URL from backblaze
+            try {
+              const backblazeResp = await axios.get(`/api/backblaze?file_id=${paperData.file_id}`);
+              if (backblazeResp.status === 200 && backblazeResp.data.downloadUrl) {
+                setPdfURL(backblazeResp.data.downloadUrl);
+              } else {
+                toast.error('Could not fetch PDF URL from Backblaze.');
+              }
+            } catch (e) {
+              toast.error('Error fetching PDF URL from Backblaze.');
+            }
+          } else {
+            toast.error('No PDF available for this item.');
           }
 
           if (paperData.notes) {
@@ -80,7 +94,7 @@ export default function Page({ params }: { params: Promise<{ uuid: string }> }) 
         {!gettingData ? (
           <>
             <PDFViewer
-              url={pdfURL}
+              url={`/api/pdf-proxy?url=${encodeURIComponent(pdfURL)}`}
             />
             <Notes serverNotes={notes} uuid={uuid} />
           </>
