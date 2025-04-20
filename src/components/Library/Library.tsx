@@ -161,50 +161,7 @@ export default function Library() {
     }
   }, [paperURL]);
 
-  async function postLib() {
-    setUploadPaperBtnDisabled(true);
-    try {
-      await axios.post(
-        `/api/library`,
-        {
-          title: title,
-          email: session?.user.email,
-          authors: Array.from(authors),
-          description: description,
-          pdf_link: pdfLink,
-        },
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
-      );
-      toast.success("Paper Added Successfully");
-      getLib();
-      setUploadPaperDialogOpen(false);
-      setTitle("");
-      setDescription("");
-      setAuthors(new Set());
-      setPdfLink("");
-      setPaperURL("");
-    } catch (error: unknown) {
-      console.log(error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 409) {
-          toast.error("Paper already present in your library");
-        } else {
-          toast.error("Something went wrong");
-        }
-      } else {
-        toast.error("Something went wrong");
-      }
-    } finally {
-      setUploadPaperBtnDisabled(false);
-    }
-  }
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -224,45 +181,90 @@ export default function Library() {
     try {
       // Extract PDF metadata and set as default field values
       const metadata = await extractPDFMetadata(file);
-      if (metadata.title) setTitle(metadata.title);
-      if (metadata.authors && metadata.authors.length > 0) setAuthors(new Set(metadata.authors));
-      if (metadata.subject) setDescription(metadata.subject); // or use subject as description fallback
-      // keywords and upload_date can be used if you add fields for them
-
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadResp = await axios.post("/api/backblaze", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const fileId = uploadResp.data.fileId;
-      // Use title/desc/authors from the form (now possibly set by metadata)
-      const paperDetails = {
-        title,
-        description,
-        authors: Array.from(authors),
-        file_id: fileId,
-        email: session?.user.email,
-      };
-      await axios.post(
-        "/api/library",
-        paperDetails,
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
+      const extractedTitle = metadata.title || "";
+      const extractedAuthors = metadata.authors && metadata.authors.length > 0 ? new Set<string>(metadata.authors) : new Set<string>();
+      const extractedDescription = metadata.subject || "";
+      setTitle(extractedTitle);
+      setAuthors(extractedAuthors);
+      setDescription(extractedDescription);
+      setSelectedFile(file);
+      // Don't upload yet; wait for user confirmation
+    } catch (error: any) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.error(
+        error?.response?.data?.error || error.message || "Failed to extract metadata"
       );
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  function handleRemoveFile() {
+    setSelectedFile(null);
+    setTitle("");
+    setDescription("");
+    setAuthors(new Set());
+    setPdfLink("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  const [usingLink, setUsingLink] = useState(false);
+
+  async function handleConfirmUpload() {
+    if (!selectedFile && !paperURL) {
+      toast.error("No file or link provided");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const uploadResp = await axios.post("/api/backblaze", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        const fileId = uploadResp.data.fileId;
+        const paperDetails = {
+          title,
+          description,
+          authors: Array.from(authors),
+          file_id: fileId,
+          email: session?.user.email,
+        };
+        await axios.post(
+          "/api/library",
+          paperDetails,
+          {
+            headers: {
+              Authorization: "Bearer " + session?.supabaseAccessToken,
+            },
+          }
+        );
+      } else if (paperURL) {
+        // Upload via link
+        const paperDetails = {
+          title,
+          description,
+          authors: Array.from(authors),
+          pdf_link: paperURL,
+          email: session?.user.email,
+        };
+        await axios.post(
+          "/api/library",
+          paperDetails,
+          {
+            headers: {
+              Authorization: "Bearer " + session?.supabaseAccessToken,
+            },
+          }
+        );
+      }
       toast.success("Paper uploaded and added to library");
       getLib();
       setUploadPaperDialogOpen(false);
-      setTitle("");
-      setDescription("");
-      setAuthors(new Set());
-      setPdfLink("");
+      handleRemoveFile();
       setPaperURL("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error: any) {
-      if (fileInputRef.current) fileInputRef.current.value = "";
       toast.error(
         error?.response?.data?.error || error.message || "Upload failed"
       );
@@ -270,6 +272,9 @@ export default function Library() {
       setIsUploading(false);
     }
   }
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (status === "loading") {
     return <p>Loading...</p>;
@@ -292,7 +297,6 @@ export default function Library() {
 
   return (
     <div className="py-20 w-full flex flex-col gap-10">
-      {/* <Toaster /> */}
       <div className="flex flex-row justify-between w-full items-center">
         <h1 className="text-3xl font-bold">Library</h1>
         <div className="flex flex-row gap-4 items-center">
@@ -326,109 +330,94 @@ export default function Library() {
                       value={paperURL}
                       onChange={(e) => {
                         setPaperURL(e.target.value);
+                        setUsingLink(e.target.value !== "");
+                        if (e.target.value !== "") {
+                          // If user enters a link, remove file
+                          setSelectedFile(null);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }
                       }}
                       placeholder="Enter Paper URL"
+                      disabled={selectedFile !== null}
                     />
+                    {paperURL && (
+                      <Button type="button" variant="outline" size="sm" onClick={() => { setPaperURL(""); setUsingLink(false); }}>
+                        Clear Link
+                      </Button>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-3">
                     <h2 className="font-semibold text-md">Paper Details:</h2>
                     <div className="flex flex-col gap-2 w-full md:flex-row">
                       <div className="w-full md:w-1/2">
-                        <label htmlFor="input">Title</label>
+                        <label htmlFor="input">Title <span style={{color: 'red'}}>*</span></label>
                         <Input
                           placeholder="Title"
                           value={title}
                           onChange={(e) => {
                             setTitle(e.target.value);
                           }}
+                          required
+                          className={title === "" ? "border-red-500" : ""}
                         />
+                        {title === "" && (
+                          <span className="text-xs text-red-500">Title is required</span>
+                        )}
                       </div>
                       <div className="w-full md:w-1/2">
-                        <label htmlFor="input" className="text-sm">
-                          PDF Link of the Paper
-                        </label>
-                        <Input
-                          placeholder="PDF Link"
-                          value={pdfLink}
-                          onChange={(e) => {
-                            setPdfLink(e.target.value);
-                          }}
+                        <label htmlFor="input">Authors</label>
+                        <MultiInput
+                          inputs={authors}
+                          setInputs={setAuthors}
+                          currentInput={currentAuthor}
+                          setCurrentInput={setCurrentAuthor}
+                          placeholder="Add author(s)"
                         />
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="Input">Authors</label>
-                      <MultiInput
-                        setInputs={setAuthors}
-                        inputs={authors}
-                        currentInput={currentAuthor}
-                        setCurrentInput={setCurrentAuthor}
-                        placeholder={
-                          "Press Enter after typing an Author's Name"
-                        }
-                      />
-                      <div className="flex flex-row gap-2 flex-wrap my-2 max-h-[100px] overflow-y-auto">
-                        {authors &&
-                          authors.size > 0 &&
-                          Array.from(authors).map((author) => (
-                            <span
-                              key={author}
-                              className="flex flex-row gap-1 items-center justify-center w-fit bg-gray-800 text-xs rounded-md p-2 text-white text-center"
-                            >
-                              <p>{author}</p>
-
-                              <X
-                                size={12}
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  setAuthors((prevauthors) => {
-                                    const newauthors = new Set(prevauthors);
-                                    newauthors.delete(author);
-                                    return newauthors;
-                                  });
-                                }}
-                              />
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="textarea">Description</label>
+                      <label htmlFor="input">Description</label>
                       <Textarea
-                        className="max-h-[100px] "
-                        placeholder="description"
+                      className="max-h-[100px]"
+                        placeholder="Description"
                         value={description}
-                        onChange={(e) => {
-                          setDescription(e.target.value);
-                        }}
+                        onChange={(e) => setDescription(e.target.value)}
                       />
-                    </div>
-                    <div className="flex flex-col gap-2 mt-2">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="application/pdf"
-                        onChange={handleFileUpload}
-                      />
-                      <Button
-                        variant="outline"
-                        className="w-full bg-purple/10 text-dark-purple border-purple hover:bg-purple/20"
-                        disabled={isUploading}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        {isUploading ? "Uploading..." : "Upload PDF from Computer"}
-                      </Button>
                     </div>
                   </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label>Upload PDF File</label>
+                    {selectedFile ? (
+                      <div className="flex flex-row items-center gap-2">
+                        <span className="truncate max-w-xs">{selectedFile.name}</span>
+                        <Button type="button" variant="outline" size="sm" onClick={handleRemoveFile}>
+                          Remove File
+                        </Button>
+                      </div>
+                    ) : (
+                      <Input
+                        type="file"
+                        accept="application/pdf"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        disabled={usingLink}
+                      />
+                    )}
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      onClick={handleConfirmUpload}
+                      disabled={isUploading || (!selectedFile && !paperURL) || title === ""}
+                      className="bg-purple text-white hover:bg-dark-purple"
+                    >
+                      {isUploading ? "Uploading..." : "Confirm & Upload"}
+                    </Button>
+                  </DialogFooter>
                 </div>
               </DialogHeader>
-              <DialogFooter>
-                <Button disabled={uploadPaperBtnDisabled} onClick={postLib}>
-                  {"Add Paper by Link"}
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>

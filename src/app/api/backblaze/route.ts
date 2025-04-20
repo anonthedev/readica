@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         ...fileInfo.data,
-        downloadUrl: fileUrl, // this is the actual download URL
+        downloadUrl: fileUrl,
       },
       { status: 200 }
     );
