@@ -179,7 +179,6 @@ export default function Library() {
     }
     setIsUploading(true);
     try {
-      // Extract PDF metadata and set as default field values
       const metadata = await extractPDFMetadata(file);
       const extractedTitle = metadata.title || "";
       const extractedAuthors = metadata.authors && metadata.authors.length > 0 ? new Set<string>(metadata.authors) : new Set<string>();
@@ -188,7 +187,6 @@ export default function Library() {
       setAuthors(extractedAuthors);
       setDescription(extractedDescription);
       setSelectedFile(file);
-      // Don't upload yet; wait for user confirmation
     } catch (error: any) {
       if (fileInputRef.current) fileInputRef.current.value = "";
       toast.error(
@@ -387,7 +385,7 @@ export default function Library() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  {/* <div className="flex flex-col gap-2">
                     <label>Upload PDF File</label>
                     {selectedFile ? (
                       <div className="flex flex-row items-center gap-2">
@@ -405,7 +403,7 @@ export default function Library() {
                         disabled={usingLink}
                       />
                     )}
-                  </div>
+                  </div> */}
 
                   <DialogFooter>
                     <Button
