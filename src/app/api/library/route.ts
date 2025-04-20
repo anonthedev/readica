@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
   const token = authHeader.split(" ")[1];
   const supabase = await supabaseClient(token);
 
-  let insertData: any = {
+  const insertData: any = {
     email: body.email,
     user_id: userId,
     title: body.title,
