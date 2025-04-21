@@ -253,6 +253,27 @@ export async function DELETE(req: NextRequest) {
     const token = authHeader.split(" ")[1];
     const supabase = await supabaseClient(token);
 
+    const { data: existing, error: fetchError } = await supabase
+      .from("library")
+      .select("file_id")
+      .eq("uuid", uuid)
+      .single();
+    if (fetchError) throw fetchError;
+    const fileId = existing.file_id;
+    if (fileId) {
+      try {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backblaze?fileId=${fileId}`
+        );
+      } catch (deleteErr) {
+        console.error("Failed to delete file from Backblaze", deleteErr);
+        return NextResponse.json(
+          { message: "Failed to delete file from Backblaze" },
+          { status: 500 }
+        );
+      }
+    }
+
     const { data, error } = await supabase
       .from("library")
       .delete()

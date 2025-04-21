@@ -28,7 +28,6 @@ import { extractPDFMetadata } from "@/lib/utils";
 
 import MultiInput from "../ui/multi-input";
 import { Textarea } from "../ui/textarea";
-import { Toaster } from "../ui/sonner";
 import { useRef } from "react";
 import { toast } from "sonner";
 import LibraryItem from "@/components/Library/LibraryItem";
@@ -218,7 +217,7 @@ export default function Library() {
       if (selectedFile) {
         const formData = new FormData();
         formData.append("file", selectedFile);
-        const uploadResp = await axios.post("/api/backblaze", formData, {
+        const uploadResp = await axios.post("https://readica-backend-production.up.railway.app/upload", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         const fileId = uploadResp.data.fileId;
@@ -239,7 +238,6 @@ export default function Library() {
           }
         );
       } else if (paperURL) {
-        // Upload via link
         const paperDetails = {
           title,
           description,
@@ -330,7 +328,6 @@ export default function Library() {
                         setPaperURL(e.target.value);
                         setUsingLink(e.target.value !== "");
                         if (e.target.value !== "") {
-                          // If user enters a link, remove file
                           setSelectedFile(null);
                           if (fileInputRef.current) fileInputRef.current.value = "";
                         }
@@ -385,7 +382,7 @@ export default function Library() {
                     </div>
                   </div>
 
-                  {/* <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2">
                     <label>Upload PDF File</label>
                     {selectedFile ? (
                       <div className="flex flex-row items-center gap-2">
@@ -403,7 +400,7 @@ export default function Library() {
                         disabled={usingLink}
                       />
                     )}
-                  </div> */}
+                  </div>
 
                   <DialogFooter>
                     <Button
