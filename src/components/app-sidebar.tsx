@@ -60,7 +60,6 @@ const items = [
 export function AppSidebar() {
   const { data: session } = useSession();
   const { setTheme, theme } = useTheme();
-  console.log(theme);
   const pathname = usePathname();
 
   return (
