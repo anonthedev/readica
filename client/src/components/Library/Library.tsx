@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense, useRef } from "react";
-// import { supabaseClient } from "@/lib/supabase";
 import axios from "axios";
 import LibraryHeader from "./LibraryHeader";
 import TagFilter from "./TagFilter";
@@ -12,6 +11,7 @@ import LibraryUploadDialog from "./LibraryUploadDialog";
 import { useLibraryStore } from "@/store/libraryStore";
 import { arxivSearch } from "@/lib/searchFunctions";
 import { LibraryItemType } from "@/types/PaperTypes";
+import { useLibrary } from "@/hooks/use-library";
 
 export default function Library() {
   const [authors, setAuthors] = useState<Set<string>>(new Set());
@@ -28,7 +28,7 @@ export default function Library() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const library = useLibraryStore((state) => state.library);
+  const { library, isError, isLoading } = useLibrary();
   const setLibrary = useLibraryStore((state) => state.setLibrary);
   const loadingPapers = useLibraryStore((state) => state.loadingPapers);
   const setLoadingPapers = useLibraryStore((state) => state.setLoadingPapers);
@@ -54,10 +54,10 @@ export default function Library() {
   }, [status, router]);
 
   useEffect(() => {
-    if (status == "authenticated" && session) {
-      getLib();
+    if (library) {
+      setLibrary(library);
     }
-  }, []);
+  }, [library, setLibrary]);
 
   useEffect(() => {
     if (paperURL == "" || title == "" || pdfLink == "") {
@@ -105,34 +105,6 @@ export default function Library() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.get("tags"), searchParams.get("search"), searchParams.get("field")]);
 
-  async function getLib() {
-    setLoadingPapers(true);
-    try {
-      const resp = await axios.get(
-        `/api/library?userId=${encodeURI(session?.user.id as string)}`,
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
-      );
-      if (resp.status === 200) {
-        setLibrary(resp.data);
-        resp.data.map((item: LibraryItemType) => {
-          if (item.tags && item.tags.length > 0) {
-            item.tags.forEach((tag) => {
-              setAllTags((prevTags) => new Set(prevTags).add(tag));
-            });
-          }
-        });
-      }
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoadingPapers(false);
-    }
-  }
-
   async function getPaperDetails() {
     try {
       const resp = await arxivSearch(paperURL);
@@ -167,14 +139,14 @@ export default function Library() {
   return (
     <div className="py-20 w-full flex flex-col gap-2">
       <LibraryHeader
-        onRefresh={getLib}
         onOpenUploadDialog={() => setUploadPaperDialogOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         searchField={searchField}
         setSearchField={setSearchField}
+        // onRefresh={() => queryClient.invalidateQueries({ queryKey: ["library"] })}
       />
-      <LibraryUploadDialog getLib={getLib} session={session} />
+      <LibraryUploadDialog session={session} />
       <TagFilter allTags={allTags} />
       <LibraryList
         filter={(item) =>

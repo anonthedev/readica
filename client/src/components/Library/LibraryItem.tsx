@@ -24,13 +24,12 @@ import { turnacateString } from "@/lib/utils";
 import { LibraryItemType } from "@/types/PaperTypes";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import axios from "axios";
 import { EllipsisVertical, X } from "lucide-react";
+import { useUpdateLibraryItem, useDeleteFromLibrary } from "@/hooks/use-library";
 
 export default function LibraryItem({ item }: { item: LibraryItemType }) {
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [currentTag, setCurrentTag] = useState("");
-  const [updatingItem, setUpdatingItem] = useState<boolean>(false);
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description || "");
   const [authors, setAuthors] = useState<Set<string>>(new Set(item.authors));
@@ -38,135 +37,111 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   const [pdfLink, setPdfLink] = useState(item.pdf_link || "");
 
   const { data: session } = useSession();
+  const { mutate: updateItem, isPending: isUpdating } = useUpdateLibraryItem();
+  const { mutate: deleteItem, isPending: isDeleting } = useDeleteFromLibrary();
 
   useEffect(() => {
     if (item.tags) {
       setTags(new Set(item.tags));
     }
-  }, []);
+  }, [item.tags]);
 
-  async function updateTags() {
-    setUpdatingItem(true);
+  const updateTags = () => {
     if (tags.size > 5) {
       toast.error("You can only have up to 5 tags.");
-      setUpdatingItem(false);
       return;
     }
-    try {
-      await axios.put(
-        `/api/library?uuid=${encodeURIComponent(item.uuid)}`,
-        { tags: Array.from(tags) },
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
-        }
-      );
-      toast.success("Tags updated successfully.");
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        toast.error(
-          e?.response?.data?.message ||
-            "Failed to update tags. Please try again."
-        );
-      } else {
-        toast.error("Something went wrong");
-      }
-    } finally {
-      setUpdatingItem(false);
-    }
-  }
 
-  async function deletePaper() {
-    try {
-      const resp = await axios.delete(`/api/library?uuid=${item.uuid}`, {
-        headers: {
-          Authorization: "Bearer " + session?.supabaseAccessToken,
+    updateItem(
+      { uuid: item.uuid, tags: Array.from(tags) },
+      {
+        onSuccess: () => {
+          toast.success("Tags updated successfully.");
         },
-      });
-      console.log(resp);
-      toast.success("Paper deleted successfully");
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.log(e.response?.data);
-        toast.error("Something went wrong");
-      } else {
-        toast.error("Something went wrong");
-      }
-    }
-  }
-
-  async function updatePaperDetails() {
-    setUpdatingItem(true);
-    try {
-      await axios.put(
-        `/api/library?uuid=${encodeURIComponent(item.uuid)}`,
-        {
-          title,
-          description,
-          authors: Array.from(authors),
-          pdf_link: pdfLink,
-        },
-        {
-          headers: {
-            Authorization: "Bearer " + session?.supabaseAccessToken,
-          },
+        onError: (error) => {
+          toast.error("Failed to update tags. Please try again.");
         }
-      );
-      toast.success("Paper details updated successfully");
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.log(e.response?.data);
-        toast.error("Something went wrong");
-      } else {
-        toast.error("Something went wrong");
       }
-    } finally {
-      setUpdatingItem(false);
-    }
-  }
+    );
+  };
 
+  const deletePaper = () => {
+    deleteItem(item.uuid, {
+      onSuccess: () => {
+        toast.success("Paper deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete paper");
+      }
+    });
+  };
+
+  const updatePaperDetails = () => {
+    updateItem(
+      {
+        uuid: item.uuid,
+        title,
+        description,
+        authors: Array.from(authors),
+        pdf_link: pdfLink,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Paper details updated successfully");
+        },
+        onError: () => {
+          toast.error("Failed to update paper details");
+        }
+      }
+    );
+  };
 
   return (
     <div
       key={item.uuid}
       className="flex flex-row justify-between items-start bg-background text-foreground rounded-md p-4 border-[1px] border-slate-800"
     >
-      <Link href={`reader/${item.uuid}`} target="_blank">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="font-medium text-lg max-w-[25ch]" title={item.title}>
-              {turnacateString(item.title, 45)}
-            </h2>
-            <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
-              {item.authors.length > 2
-                ? item.authors.slice(0, 2).join(", ") +
-                  `, +${item.authors.length - 2}`
-                : item.authors.join(", ")}
-            </p>
-          </div>
-          {item.description && (
-            <p
-              className="font-[400] text-xs max-w-[40ch] text-ellipsis"
-              title={item.description}
-            >
-              {turnacateString(item.description, 65)}
-            </p>
-          )}
-          <p className="flex flex-row gap-1">
-            {item.tags &&
-              item.tags.length !== 0 &&
-              item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className=" text-xs bg-[#78787814] rounded-md py-1 px-2 text-[#646464] text-center"
-                >
-                  {tag}
-                </span>
-              ))}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="font-medium text-lg max-w-[25ch]" title={item.title}>
+            {turnacateString(item.title, 45)}
+          </h2>
+          <p className="max-w-prose text-ellipsis text-gray-400 text-sm">
+            {item.authors.length > 2
+              ? item.authors.slice(0, 2).join(", ") +
+                `, +${item.authors.length - 2}`
+              : item.authors.join(", ")}
           </p>
         </div>
-      </Link>
+        {item.description && (
+          <p
+            className="font-[400] text-xs max-w-[40ch] text-ellipsis"
+            title={item.description}
+          >
+            {turnacateString(item.description, 65)}
+          </p>
+        )}
+        <p className="flex flex-row gap-1">
+          {item.tags &&
+            item.tags.length !== 0 &&
+            item.tags.map((tag) => (
+              <span
+                key={tag}
+                className=" text-xs bg-[#78787814] rounded-md py-1 px-2 text-[#646464] text-center"
+              >
+                {tag}
+              </span>
+            ))}
+        </p>
+        <div className="flex gap-2 mt-1">
+          <Link href={`reader/${item.uuid}`} target="_blank">
+            <Button variant="outline" size="sm">Read</Button>
+          </Link>
+          <Link href={`ai-reader/${item.uuid}`} target="_blank">
+            <Button variant="default" size="sm">AI Reader</Button>
+          </Link>
+        </div>
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger>
           <EllipsisVertical className="cursor-pointer" />
@@ -226,12 +201,12 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                     />
                     <Button
                       className="w-fit self-center"
-                      disabled={updatingItem}
+                      disabled={isUpdating}
                       onClick={() => {
                         updateTags();
                       }}
                     >
-                      {updatingItem ? "Updating..." : "Save"}
+                      {isUpdating ? "Updating..." : "Save"}
                     </Button>
                   </DialogDescription>
                 </DialogHeader>
@@ -313,10 +288,10 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                 </div>
                 <DialogFooter>
                   <Button
-                    disabled={updatingItem || !title}
+                    disabled={isUpdating || !title}
                     onClick={updatePaperDetails}
                   >
-                    {updatingItem ? "Updating..." : "Save Changes"}
+                    {isUpdating ? "Updating..." : "Save Changes"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

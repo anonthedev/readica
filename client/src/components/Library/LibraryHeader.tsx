@@ -5,7 +5,7 @@ import { Plus, RefreshCcw } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 
 interface LibraryHeaderProps {
-  onRefresh: () => void;
+  // onRefresh: () => void;
   onOpenUploadDialog: () => void;
   searchQuery: string;
   setSearchQuery: (val: string) => void;
@@ -14,7 +14,7 @@ interface LibraryHeaderProps {
 }
 
 const LibraryHeader: React.FC<LibraryHeaderProps> = ({
-  onRefresh,
+  // onRefresh,
   onOpenUploadDialog,
   searchQuery,
   setSearchQuery,
@@ -45,9 +45,9 @@ const LibraryHeader: React.FC<LibraryHeaderProps> = ({
         <Plus size={18} />
         Add Papers
       </Button>
-      <Button onClick={onRefresh} variant="outline" size="icon">
+      {/* <Button onClick={onRefresh} variant="outline" size="icon">
         <RefreshCcw size={18} />
-      </Button>
+      </Button> */}
     </div>
   );
 };
