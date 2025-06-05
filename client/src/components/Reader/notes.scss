@@ -1,0 +1,39 @@
+.menu-item{
+    // border-bottom: 0.5px solid gray;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.active-menu-item{
+    background-color: aqua;
+    color: black;
+}
+
+.text-editor {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ProseMirror {
+    flex-grow: 1;
+    min-height: 100%;
+    outline: none;
+    height: 100%;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #adb5bd;
+    pointer-events: none;
+    height: 0;
+}
+
+.tiptap {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
