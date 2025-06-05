@@ -16,9 +16,9 @@ import {
   ZoomOut,
   CurrentZoom,
   ZoomIn,
-  CustomLayer,
 } from "@anaralabs/lector";
 import { SelectionTooltip } from "@anaralabs/lector";
+
 import "pdfjs-dist/web/pdf_viewer.css";
 import { Button } from "../ui/button";
 
@@ -44,10 +44,12 @@ GlobalWorkerOptions.workerSrc = new URL(
 
 export default function PDFViewer({ url }: { url: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+
   return (
     <Root
       source={url}
-      className="w-1/2 h-[calc(100vh-40px)]"
+      className="w-full h-[calc(100vh-40px)]"
       loader={<div className="p-4">Loading...</div>}
       zoomOptions={{
         minZoom: 0.5,
@@ -186,7 +188,7 @@ const HighlightLayerContent = () => {
       <Page>
         {/* {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />} */}
         <CanvasLayer />
-        <TextLayer />
+        {/* <CustomTextLayer /> */}
         <HighlightLayer className="bg-yellow-200/70" />
 
         {/* <CustomLayer>

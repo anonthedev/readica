@@ -5,11 +5,11 @@ import fs from "fs";
 import B2 from "backblaze-b2";
 import cors from "cors";
 import { PDFDocument } from "pdf-lib";
-import { processPaperForRag, processChunksForRag, generateRagResponse } from "./rag-service.mjs";
+// import { processPaperForRag, processChunksForRag, generateRagResponse } from "./rag-service.mjs";
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 3001;
+const port = 3001;
 
 app.use(cors());
 
@@ -96,8 +96,7 @@ app.post("/extract-metadata", tempUpload.single("file"), async (req, res) => {
     
     // Clean up the temporary file
     fs.unlinkSync(file.path);
-    
-    // Return metadata
+
     res.json({
       message: "Metadata extracted successfully",
       metadata: metadata,
@@ -126,9 +125,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
   try {
     // Extract metadata from the PDF
-    const metadata = await extractPDFMetadata(file.path);
-
-    console.log(metadata)
+    const metadata = await extractPDFMetadata(file.path);    
     
     await ensureAuthorized();
 
@@ -167,83 +164,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// RAG API endpoints
-
-// Process a PDF file for RAG
-app.post("/process-pdf-for-rag", upload.single("file"), async (req, res) => {
-  const file = req.file;
-  const { uuid, title, authors } = req.body;
-
-  if (!file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  if (file.mimetype !== "application/pdf") {
-    fs.unlinkSync(file.path);
-    return res.status(400).json({ error: "Only PDF files are allowed" });
-  }
-
-  if (!uuid) {
-    fs.unlinkSync(file.path);
-    return res.status(400).json({ error: "UUID is required" });
-  }
-
-  try {
-    const metadata = {
-      title: title || 'Unknown Title',
-      authors: authors ? JSON.parse(authors) : [],
-    };
-
-    const result = await processPaperForRag(file.path, uuid, metadata);
-    
-    // Don't delete the file here as it's needed by B2 upload later
-    // We'll let the original upload endpoint handle file cleanup
-    
-    res.json(result);
-  } catch (error) {
-    console.error("Error processing PDF for RAG:", error);
-    // Clean up file on error
-    if (file && file.path) {
-      fs.unlinkSync(file.path);
-    }
-    res.status(500).json({ error: "Failed to process PDF for RAG", details: error.message });
-  }
-});
-
-// Generate a response to a query using RAG
-app.post("/rag-query", express.json(), async (req, res) => {
-  const { uuid, query } = req.body;
-
-  if (!uuid || !query) {
-    return res.status(400).json({ error: "UUID and query are required" });
-  }
-
-  try {
-    const response = await generateRagResponse(uuid, query);
-    res.json(response);
-  } catch (error) {
-    console.error("Error generating RAG response:", error);
-    res.status(500).json({ error: "Failed to generate RAG response", details: error.message });
-  }
-});
-
-// Process text chunks directly for RAG (useful for testing)
-app.post("/process-chunks-for-rag", express.json(), async (req, res) => {
-  const { uuid, chunks, metadata } = req.body;
-
-  if (!uuid || !chunks || !Array.isArray(chunks)) {
-    return res.status(400).json({ error: "UUID and chunks array are required" });
-  }
-
-  try {
-    const result = await processChunksForRag(chunks, uuid, metadata || {});
-    res.json(result);
-  } catch (error) {
-    console.error("Error processing chunks for RAG:", error);
-    res.status(500).json({ error: "Failed to process chunks for RAG", details: error.message });
-  }
-});
-
 app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });

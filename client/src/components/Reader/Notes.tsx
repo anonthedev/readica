@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, MouseEventHandler } from "react";
+import {
+  useState,
+  MouseEventHandler,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useSession } from "next-auth/react";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -54,9 +60,18 @@ export default function Notes({
     onUpdate({ editor }) {
       setNotes(editor.getHTML());
     },
+    editorProps: {
+      attributes: {
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl h-full w-full focus:outline-none flex-grow min-h-full",
+        style: "min-height: 100%;",
+      },
+    },
   });
 
-  async function saveNotes(){
+  const saveNotes = useCallback(async () => {
+    if (saving) return;
+
     setSaving(true);
 
     try {
@@ -76,13 +91,71 @@ export default function Notes({
     } finally {
       setSaving(false);
     }
-  }
+  }, [notes, uuid, session?.supabaseAccessToken, saving]);
+
+  const notesContainerRef = useRef<HTMLDivElement>(null);
+  const [isNotesFocused, setIsNotesFocused] = useState(false);
+
+  // Track focus state of the notes section
+  useEffect(() => {
+    const checkFocus = () => {
+      // Check if the editor or any of its children has focus
+      if (!notesContainerRef.current) return;
+
+      const editorHasFocus = editor?.isFocused;
+      const containerHasFocus = notesContainerRef.current.contains(
+        document.activeElement
+      );
+
+      setIsNotesFocused(editorHasFocus || containerHasFocus);
+    };
+
+    // Set up event listeners for focus tracking
+    document.addEventListener("focusin", checkFocus);
+    document.addEventListener("focusout", checkFocus);
+    document.addEventListener("click", checkFocus);
+
+    return () => {
+      document.removeEventListener("focusin", checkFocus);
+      document.removeEventListener("focusout", checkFocus);
+      document.removeEventListener("click", checkFocus);
+    };
+  }, [editor]);
+
+  // Add keyboard shortcut for Ctrl+S to save notes only when notes section is focused
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNotesFocused && (e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault(); // Prevent browser's save dialog
+        saveNotes();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [saveNotes, isNotesFocused]);
 
   return (
-      <div className="text-editor unreset h-screen w-1/2 border-2 p-2 flex flex-col gap-2">
-        <MenuBar editor={editor} saveNotesFunc={saveNotes} saving={saving} />
-        <EditorContent editor={editor} />
+    <div
+      ref={notesContainerRef}
+      className="text-editor unreset h-screen w-full border-2 p-2 flex flex-col gap-2"
+    >
+      <MenuBar
+        editor={editor}
+        saveNotesFunc={saveNotes}
+        saving={saving}
+      />
+      <div className="flex-grow flex flex-col overflow-hidden">
+        <EditorContent
+          editor={editor}
+          className="overflow-y-auto flex-grow flex flex-col min-h-full"
+          onClick={() => editor?.commands.focus()}
+        />
       </div>
+    </div>
   );
 }
 
@@ -92,7 +165,7 @@ type MenuBarProps = {
   saving: boolean;
 };
 
-const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc, saving }) => {
+function MenuBar({ editor, saveNotesFunc, saving}: MenuBarProps) {
   if (!editor) {
     return null;
   }
@@ -288,4 +361,4 @@ const MenuBar: React.FC<MenuBarProps> = ({ editor, saveNotesFunc, saving }) => {
       </button>
     </div>
   );
-};
+}

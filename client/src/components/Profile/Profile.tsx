@@ -81,7 +81,7 @@ export default function Profile() {
 
   if (status === "loading") {
     return (
-      <section className="my-8 w-full px-4 md:px-10 py-5">
+      <section className="my-8 w-full px-4 md:px-10 py-5 max-w-7xl mx-auto">
         <article className="flex flex-col gap-12 md:gap-16">
           <div className="flex flex-row items-center gap-4 md:gap-8">
             <Skeleton className="w-16 h-16 md:w-[120px] md:h-[120px] rounded-full" />
@@ -105,9 +105,9 @@ export default function Profile() {
 
   if (status === "authenticated" && session?.user) {
     return (
-      <section className="my-8 w-full px-4 md:px-10 py-5">
-        <article className="flex flex-col gap-12 md:gap-16">
-          <div className="flex flex-row items-center gap-4 md:gap-8">
+      <section className="my-8 w-full py-5 max-w-7xl mx-auto">
+        <article className="flex flex-col gap-12 md:gap-4">
+          <div className="px-4 md:px-6 flex flex-row items-center gap-4 md:gap-8">
             {session.user.image ? (
               <img
                 className="w-16 h-16 md:w-[120px] md:h-[120px] rounded-full object-cover"
@@ -129,14 +129,11 @@ export default function Profile() {
                 <span className="font-normal text-xs md:text-sm text-gray-400">
                   @{(session.user as User).username}
                 </span>
-                <span className="font-normal text-xs md:text-xs text-gray-400">
-                  {session.user.email}
-                </span>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button
                       variant={"secondary"}
-                      className="py-1 px-3.5 text-gray-400 hover:text-gray-200"
+                      className="mt-1 py-1 px-3.5 text-gray-400 hover:text-gray-200"
                     >
                       Edit Username
                     </Button>

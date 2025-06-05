@@ -1,5 +1,8 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import { useLibraryStore } from "@/store/libraryStore";
+import { Badge } from "@/components/ui/badge";
 
 interface TagFilterProps {
   allTags: Set<string>;
@@ -19,16 +22,23 @@ const TagFilter: React.FC<TagFilterProps> = ({ allTags }) => {
     setSelectedTags(newTags);
   };
 
+  if (allTags.size === 0) return null;
+
   return (
-    <div className="flex flex-wrap gap-2 mb-2">
+    <div className="flex flex-wrap gap-2">
       {[...allTags].map((tag) => (
-        <button
+        <Badge
           key={tag}
-          className={`px-2 py-1 rounded-md border cursor-pointer ${selectedTags.has(tag) ? "bg-purple text-white" : "bg-muted"}`}
+          variant={selectedTags.has(tag) ? "default" : "outline"}
+          className={`px-3 py-1 cursor-pointer transition-all ${
+            selectedTags.has(tag)
+              ? "bg-purple text-white hover:bg-dark-purple"
+              : "hover:border-purple/50 hover:text-purple"
+          }`}
           onClick={() => handleTagClick(tag)}
         >
           {tag}
-        </button>
+        </Badge>
       ))}
     </div>
   );

@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
     const { data: library, error } = await supabase
       .from("library")
       .select("*")
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .order("upload_date", { ascending: false });
 
     if (error) {
       return NextResponse.json(

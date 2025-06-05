@@ -1,0 +1,46 @@
+/* Fix for text selection in PDF viewer */
+.textLayer {
+  position: absolute;
+  text-align: initial;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.2;
+  line-height: 1;
+}
+
+.textLayer > span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer .highlight {
+  margin: -1px;
+  padding: 1px;
+  background-color: rgba(180, 0, 170, 0.2);
+  border-radius: 4px;
+}
+
+.textLayer ::selection {
+  background: rgba(0, 0, 255, 0.3);
+}
+
+/* Fix for overlapping text */
+.textLayer span {
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+  /* This improves selection precision */
+  border: 0px solid transparent;
+}
+
+/* Ensure text selection doesn't go out of bounds */
+.textLayer > div {
+  position: absolute;
+  overflow: hidden;
+}
