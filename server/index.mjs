@@ -11,20 +11,10 @@ dotenv.config();
 const app = express();
 const port = 3001;
 
-const allowedOrigins = [
-  'https://www.readica.pro',
-  'http://localhost:3000',
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
+  origin: ['https://www.readica.pro', 'http://localhost:3000']
 }));
+
 
 const upload = multer({
   dest: "uploads/",

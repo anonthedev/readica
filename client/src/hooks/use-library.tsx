@@ -51,7 +51,7 @@ const uploadFileToBackend = async (
   const formData = new FormData();
   formData.append("file", file);
   const uploadResp = await axios.post(
-    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/upload`,
+    `${"https://api.readica.pro"}/upload`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
