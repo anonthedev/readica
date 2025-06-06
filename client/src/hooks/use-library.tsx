@@ -35,7 +35,8 @@ const extractMetadataFromFile = async (file: File): Promise<any> => {
   const formData = new FormData();
   formData.append("file", file);
   const extractResp = await axios.post(
-    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/extract-metadata` || "https://readica-backend-production.up.railway.app/extract-metadata",
+    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/extract-metadata` ||
+      "https://readica-backend-production.up.railway.app/extract-metadata",
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
@@ -44,11 +45,13 @@ const extractMetadataFromFile = async (file: File): Promise<any> => {
   return extractResp.data.metadata;
 };
 
-const uploadFileToBackend = async (file: File): Promise<{ fileId: string; metadata: any }> => {
+const uploadFileToBackend = async (
+  file: File
+): Promise<{ fileId: string; metadata: any }> => {
   const formData = new FormData();
   formData.append("file", file);
   const uploadResp = await axios.post(
-    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/upload` || "https://readica-backend-production.up.railway.app/upload",
+    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/upload`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
@@ -56,7 +59,7 @@ const uploadFileToBackend = async (file: File): Promise<{ fileId: string; metada
   );
   return {
     fileId: uploadResp.data.fileId,
-    metadata: uploadResp.data.metadata
+    metadata: uploadResp.data.metadata,
   };
 };
 
@@ -72,13 +75,13 @@ const addFileToLib = async (data: FileUploadData, token: string) => {
     email: data.email,
     metadata: metadata,
   };
-  
+
   const resp = await axios.post("/api/library", paperDetails, {
     headers: {
       Authorization: "Bearer " + token,
     },
   });
-  console.log(resp.data)
+  console.log(resp.data);
   return { ...resp.data, metadata };
 };
 
@@ -97,7 +100,7 @@ const addUrlToLib = async (data: UrlUploadData, token: string) => {
       Authorization: "Bearer " + token,
     },
   });
-  console.log(resp.data)
+  console.log(resp.data);
   return resp.data;
 };
 
@@ -122,11 +125,22 @@ const deleteFromLib = async (uuid: string, token: string) => {
 // React Query Hooks
 export const useLibrary = () => {
   const { data: session, status } = useSession();
-  const enabled = status === "authenticated" && !!session?.user?.id && !!session?.supabaseAccessToken;
+  const enabled =
+    status === "authenticated" &&
+    !!session?.user?.id &&
+    !!session?.supabaseAccessToken;
 
-  const { data: library, isLoading, isError } = useQuery({
+  const {
+    data: library,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["library", session?.user?.id],
-    queryFn: () => getLib(session!.supabaseAccessToken as string, session!.user.id as string),
+    queryFn: () =>
+      getLib(
+        session!.supabaseAccessToken as string,
+        session!.user.id as string
+      ),
     enabled,
   });
 
@@ -138,7 +152,7 @@ export const useAddToLibrary = () => {
   const queryClient = useQueryClient();
 
   const fileUploadMutation = useMutation({
-    mutationFn: (data: FileUploadData) => 
+    mutationFn: (data: FileUploadData) =>
       addFileToLib(data, session!.supabaseAccessToken as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["library"] });
@@ -146,13 +160,13 @@ export const useAddToLibrary = () => {
   });
 
   const urlUploadMutation = useMutation({
-    mutationFn: (data: UrlUploadData) => 
+    mutationFn: (data: UrlUploadData) =>
       addUrlToLib(data, session!.supabaseAccessToken as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["library"] });
     },
   });
-  
+
   const metadataExtraction = useMutation({
     mutationFn: (file: File) => extractMetadataFromFile(file),
   });
@@ -173,7 +187,7 @@ export const useUpdateLibraryItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<LibraryItemType>) => 
+    mutationFn: (data: Partial<LibraryItemType>) =>
       updateInLib(data, session!.supabaseAccessToken as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["library"] });
@@ -186,7 +200,7 @@ export const useDeleteFromLibrary = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (uuid: string) => 
+    mutationFn: (uuid: string) =>
       deleteFromLib(uuid, session!.supabaseAccessToken as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["library"] });
