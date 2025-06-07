@@ -35,8 +35,7 @@ const extractMetadataFromFile = async (file: File): Promise<any> => {
   const formData = new FormData();
   formData.append("file", file);
   const extractResp = await axios.post(
-    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/extract-metadata` ||
-      "https://readica-backend-production.up.railway.app/extract-metadata",
+    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/extract-metadata`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
@@ -51,7 +50,7 @@ const uploadFileToBackend = async (
   const formData = new FormData();
   formData.append("file", file);
   const uploadResp = await axios.post(
-    `${"https://api.readica.pro"}/upload`,
+    `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/upload`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
