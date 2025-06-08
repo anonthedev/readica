@@ -18,13 +18,13 @@ app.use(cors({
 
 const upload = multer({
   dest: "uploads/",
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
 
 // For metadata extraction only, we don't need to keep files permanently
 const tempUpload = multer({
   dest: "temp/",
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
 
 const b2 = new B2({
@@ -162,7 +162,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
 app.use((err, req, res, next) => {
   if (err.code === "LIMIT_FILE_SIZE") {
-    return res.status(413).json({ error: "File is too large. Max 15MB allowed." });
+    return res.status(413).json({ error: "File is too large. Max 20 MB allowed." });
   }
   next(err);
 });
