@@ -264,7 +264,7 @@ function ResultGroup ({ title, results, displayCount }: ResultGroupProps) {
     ? results.slice(0, displayCount)
     : results;
 
-  console.log(results);
+  // console.log(results);
 
   return (
     <div className="space-y-2">
@@ -295,7 +295,7 @@ export function SearchUI() {
     setLimit(newLimit);
   };
 
-  console.log(results);
+  // console.log(results);
 
   return (
     <div className="flex flex-col w-[25ch] max-w-[25ch] text-wrap h-full">

@@ -64,7 +64,7 @@ const uploadFileToBackend = async (
 
 const addFileToLib = async (data: FileUploadData, token: string) => {
   const { fileId, metadata } = await uploadFileToBackend(data.file);
-  console.log(fileId, metadata);
+  // console.log(fileId, metadata);
   const paperDetails = {
     title: data.title,
     description: data.description,
@@ -80,7 +80,7 @@ const addFileToLib = async (data: FileUploadData, token: string) => {
       Authorization: "Bearer " + token,
     },
   });
-  console.log(resp.data);
+  // console.log(resp.data);
   return { ...resp.data, metadata };
 };
 
@@ -99,12 +99,16 @@ const addUrlToLib = async (data: UrlUploadData, token: string) => {
       Authorization: "Bearer " + token,
     },
   });
-  console.log(resp.data);
+  // console.log(resp.data);
   return resp.data;
 };
 
 const updateInLib = async (data: Partial<LibraryItemType>, token: string) => {
-  const resp = await axios.put("/api/library", data, {
+  const { uuid, ...updatePayload } = data;
+  if (!uuid) {
+    throw new Error("UUID is required for updating an item.");
+  }
+  const resp = await axios.put(`/api/library?uuid=${encodeURIComponent(uuid)}`, updatePayload, {
     headers: {
       Authorization: "Bearer " + token,
     },

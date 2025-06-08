@@ -85,7 +85,7 @@ const PaperCard = memo(
 
     useEffect(() => {
       if (status === "ready" || status === "error") {
-        console.log(status);
+        // console.log(status);
         setTitle(paper.title || "");
         setDescription(paper.summary || "");
         setPdfLink(paper.url);

@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge"
 import type { LibraryItemType } from "@/types/PaperTypes"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { EllipsisVertical, X, FileText, Users, Calendar, Tag } from "lucide-react"
+import { EllipsisVertical, X, FileText, Users, Calendar, Tag, ListChecks } from "lucide-react"
+import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { useUpdateLibraryItem, useDeleteFromLibrary } from "@/hooks/use-library"
 
 export default function LibraryItem({ item }: { item: LibraryItemType }) {
@@ -31,6 +32,7 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
   const [authors, setAuthors] = useState<Set<string>>(new Set(item.authors))
   const [currentAuthor, setCurrentAuthor] = useState("")
   const [pdfLink, setPdfLink] = useState(item.pdf_link || "")
+  const [currentStatus, setCurrentStatus] = useState<"reading" | "read" | "later" | null | undefined>(item.status as "reading" | "read" | "later" | null | undefined);
 
   const { data: session } = useSession()
   const { mutate: updateItem, isPending: isUpdating } = useUpdateLibraryItem()
@@ -60,6 +62,22 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
       },
     )
   }
+
+  const updateStatus = (newStatusForDisplay: "reading" | "read" | "later" | null) => {
+    const statusForApi = newStatusForDisplay === null ? undefined : newStatusForDisplay;
+    updateItem(
+      { uuid: item.uuid, status: statusForApi },
+      {
+        onSuccess: () => {
+          setCurrentStatus(newStatusForDisplay);
+          toast.success(`Status updated to ${newStatusForDisplay || 'none'}.`);
+        },
+        onError: (error) => {
+          toast.error("Failed to update status. Please try again.");
+        },
+      },
+    );
+  };
 
   const deletePaper = () => {
     deleteItem(item.uuid, {
@@ -106,11 +124,11 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
       key={item.uuid}
       className="group flex flex-col justify-between bg-background text-foreground rounded-lg p-5 border border-border shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple/30"
     >
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-start">
-          <Link href={`/reader/${item.uuid}`} target="_blank" className="flex-1">
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-start gap-2">
+          <Link href={`/reader/${item.uuid}`} target="_blank" className="flex-1 group/title">
             <h2
-              className="font-semibold text-lg line-clamp-2 group-hover:text-purple transition-colors duration-200"
+              className="font-semibold text-lg line-clamp-2 group-hover/title:text-purple transition-colors duration-200"
               title={item.title}
             >
               {item.title}
@@ -270,6 +288,32 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
                 <X className="mr-2 h-4 w-4" />
                 Delete paper
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ListChecks className="mr-2 h-4 w-4" />
+                  Set Status
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => updateStatus("reading")}>
+                    Reading {currentStatus === "reading" && "✔"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => updateStatus("read")}>
+                    Read {currentStatus === "read" && "✔"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => updateStatus("later")}>
+                    Later {currentStatus === "later" && "✔"}
+                  </DropdownMenuItem>
+                  {currentStatus && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => updateStatus(null)}>
+                        Clear Status
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -300,12 +344,19 @@ export default function LibraryItem({ item }: { item: LibraryItemType }) {
       </div>
 
       {item.tags && item.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-4">
-          {item.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs bg-transparent hover:bg-purple/5">
-              {tag}
+        <div>
+          {currentStatus && (
+            <Badge variant="outline" className="capitalize mb-2 self-start border-purple text-purple">
+              {currentStatus}
             </Badge>
-          ))}
+          )}
+          <div className="mt-auto pt-3 flex flex-wrap gap-2 items-center">
+            {item.tags.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs bg-transparent hover:bg-purple/5">
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
 

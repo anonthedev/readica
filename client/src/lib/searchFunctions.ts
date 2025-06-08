@@ -33,7 +33,7 @@ export async function arxivSearch(query: string, signal?: AbortSignal) {
       };
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return {
       data: err,
       status: 500,

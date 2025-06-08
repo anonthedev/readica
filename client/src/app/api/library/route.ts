@@ -142,10 +142,10 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (data) {
-      console.log(data)
+      // console.log(data)
       return NextResponse.json(data, { status: 200 });
     } else {
-      console.log(error)
+      // console.log(error)
       if (fileIdToDelete) {
         try {
           await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backblaze?fileId=${fileIdToDelete}`);
@@ -197,7 +197,7 @@ export async function PUT(req: NextRequest) {
   const userId = session?.user?.id;
   const uuid = req.nextUrl.searchParams.get("uuid");
   const authHeader = req.headers.get("Authorization");
-  console.log(uuid);
+  // console.log(uuid);
   const body = await req.json();
 
   // Enforce tag limit of 5 if tags are being updated
@@ -209,7 +209,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const dataToUpdate = body;
-  console.log(dataToUpdate);
+  // console.log(dataToUpdate);
 
   if (!userId || !authHeader) {
     return NextResponse.json(
@@ -229,7 +229,7 @@ export async function PUT(req: NextRequest) {
   if (data) {
     return NextResponse.json(data, { status: 200 });
   } else {
-    console.log(error);
+    // console.log(error);
     return NextResponse.json(error, { status: 500 });
   }
 }
