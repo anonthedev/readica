@@ -82,8 +82,8 @@ export default function LibraryUploadDialog({ session }: LibraryUploadDialogProp
       toast.error("Only PDF files are supported")
       return
     }
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File size should be less than 15MB")
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("File size should be less than 20MB")
       return
     }
 
@@ -264,7 +264,7 @@ export default function LibraryUploadDialog({ session }: LibraryUploadDialogProp
                 {selectedFile ? (
                   <div className="flex items-center gap-2 p-2 bg-background rounded border border-border/50">
                     <FileIcon className="h-5 w-5 text-purple" />
-                    <span className="truncate flex-1 text-sm">{selectedFile.name}</span>
+                    <span className="truncate flex-1 text-sm max-w-[35ch]">{selectedFile.name}</span>
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemoveFile} className="h-7 text-xs">
                       Remove
                     </Button>
@@ -278,7 +278,7 @@ export default function LibraryUploadDialog({ session }: LibraryUploadDialogProp
                         ref={fileInputRef}
                         onChange={handleFileUpload}
                         disabled={usingLink || isExtractingMetadata}
-                        className="border-border/50"
+                        className="border-border/50 w-[50ch]"
                       />
                       {isExtractingMetadata && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">

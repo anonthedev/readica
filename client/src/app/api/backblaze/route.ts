@@ -12,7 +12,7 @@ const b2 = new BackblazeB2({
 
 async function parseFormData(req: NextRequest) {
   const form = formidable({
-    maxFileSize: 15 * 1024 * 1024,
+    maxFileSize: 20 * 1024 * 1024,
   });
 
   const bodyArray = await req.arrayBuffer();

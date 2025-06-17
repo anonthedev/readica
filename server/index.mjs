@@ -5,7 +5,6 @@ import fs from "fs";
 import B2 from "backblaze-b2";
 import cors from "cors";
 import { PDFDocument } from "pdf-lib";
-// import { processPaperForRag, processChunksForRag, generateRagResponse } from "./rag-service.mjs";
 
 dotenv.config();
 const app = express();

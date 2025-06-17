@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Session } from "next-auth";
 import { Analytics } from "@vercel/analytics/react";
 import QueryProvider from "@/lib/providers/queryProvider";
+import { ReactScan } from "@/components/ReactScan";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,6 +26,7 @@ export default async function RootLayout({
 
   return (
     <QueryProvider>
+      {/* <ReactScan /> */}
       <html lang="en" suppressHydrationWarning className={inter.variable}>
         <body className="font-inter overflow-x-hidden">
           <SessionProvider session={session as Session}>

@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "scan": "next dev & npx react-scan@latest http://localhost:3000"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.6",
@@ -46,6 +47,7 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.2",
+    "react-scan": "^0.3.4",
     "sass": "^1.86.3",
     "sonner": "^2.0.1",
     "tailwind": "^4.0.0",
