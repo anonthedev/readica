@@ -16,6 +16,7 @@ import {
   ZoomOut,
   CurrentZoom,
   ZoomIn,
+  CustomLayer,
 } from "@anaralabs/lector";
 import { SelectionTooltip } from "@anaralabs/lector";
 
@@ -44,7 +45,6 @@ GlobalWorkerOptions.workerSrc = new URL(
 
 export default function PDFViewer({ url }: { url: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
 
   return (
     <Root
@@ -55,6 +55,7 @@ export default function PDFViewer({ url }: { url: string }) {
         minZoom: 0.5,
         maxZoom: 5,
       }}
+      isZoomFitWidth
     >
       <div
         className={`absolute top-[40px] h-[calc(100vh-40px)] bg-background z-10 p-2 transition-all duration-300 ease-in-out transform ${
@@ -184,11 +185,11 @@ const HighlightLayerContent = () => {
   };
 
   return (
-    <Pages className="w-full max-w-full dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%] overflow-auto">
+    <Pages className="dark:invert-[94%] dark:hue-rotate-180 dark:brightness-[80%] dark:contrast-[228%] overflow-auto">
       <Page>
         {/* {selectionDimensions && <CustomSelect onHighlight={handleHighlight} />} */}
-        <CanvasLayer />
-        {/* <CustomTextLayer /> */}
+        <CanvasLayer className="canvasLayer" />
+        <TextLayer className="textLayer" />
         <HighlightLayer className="bg-yellow-200/70" />
 
         {/* <CustomLayer>
@@ -203,18 +204,15 @@ const HighlightLayerContent = () => {
   );
 };
 
-function CustomSelect({ onHighlight }: { onHighlight: () => void }){
+function CustomSelect({ onHighlight }: { onHighlight: () => void }) {
   return (
     <SelectionTooltip>
-      <Button
-        className="w-fit rounded-md px-3 py-1"
-        onClick={onHighlight}
-      >
+      <Button className="w-fit rounded-md px-3 py-1" onClick={onHighlight}>
         Highlight
       </Button>
     </SelectionTooltip>
   );
-};
+}
 
 interface ResultItemProps {
   result: SearchResult;
@@ -222,7 +220,7 @@ interface ResultItemProps {
 
 //Search
 
-function ResultItem({ result }: ResultItemProps){
+function ResultItem({ result }: ResultItemProps) {
   const { jumpToHighlightRects } = usePdfJump();
   const getPdfPageProxy = usePdf((state) => state.getPdfPageProxy);
 
@@ -249,7 +247,7 @@ function ResultItem({ result }: ResultItemProps){
       </div>
     </div>
   );
-};
+}
 
 interface ResultGroupProps {
   title: string;
@@ -257,7 +255,7 @@ interface ResultGroupProps {
   displayCount?: number;
 }
 
-function ResultGroup ({ title, results, displayCount }: ResultGroupProps) {
+function ResultGroup({ title, results, displayCount }: ResultGroupProps) {
   if (!results.length) return null;
 
   const displayResults = displayCount
@@ -276,7 +274,7 @@ function ResultGroup ({ title, results, displayCount }: ResultGroupProps) {
       ))}
     </div>
   );
-};
+}
 
 export function SearchUI() {
   const [searchText, setSearchText] = useState("");
