@@ -140,6 +140,14 @@ export default function LibraryUploadDialog({ session }: LibraryUploadDialogProp
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
+  const handleRemoveAuthor = (authorToRemove: string) => {
+    setAuthors((prevAuthors) => {
+      const newAuthors = new Set(prevAuthors)
+      newAuthors.delete(authorToRemove)
+      return newAuthors
+    })
+  }
+
   async function handleConfirmUpload() {
     if (!selectedFile && !paperURL) {
       toast.error("No file or link provided")
@@ -335,13 +343,7 @@ export default function LibraryUploadDialog({ session }: LibraryUploadDialogProp
                           <X
                             size={14}
                             className="cursor-pointer hover:text-foreground/80"
-                            onClick={() => {
-                              setAuthors((prevauthors) => {
-                                const newauthors = new Set(prevauthors)
-                                newauthors.delete(author)
-                                return newauthors
-                              })
-                            }}
+                            onClick={() => handleRemoveAuthor(author)}
                           />
                         </Badge>
                       ))}
