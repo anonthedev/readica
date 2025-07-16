@@ -7,6 +7,7 @@ import {
   SearchIcon,
   Sun,
   User2,
+  Users,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -45,11 +46,11 @@ const items = [
     url: "/dashboard",
     icon: Library,
   },
-  // {
-  //   title: "Notes",
-  //   url: "/reader/*",
-  //   icon: NotebookPen,
-  // },
+  {
+    title: "Community",
+    url: "/community",
+    icon: Users,
+  },
   {
     title: "Profile",
     url: "/profile",

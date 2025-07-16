@@ -12,6 +12,9 @@ import ResizeHandle from "@/components/Reader/ResizeHandle";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLibrary } from "@/hooks/use-library";
 import { LibraryItemType } from "@/types/PaperTypes";
+import { CommentList } from "@/components/Comments";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function Page({
   params,
@@ -24,6 +27,7 @@ export default function Page({
 
   const [pdfURL, setPdfURL] = useState("");
   const [notes, setNotes] = useState("");
+  const [showComments, setShowComments] = useState(false);
   const queryClient = useQueryClient();
   
   // Use the existing library data from the cache
@@ -126,23 +130,61 @@ export default function Page({
         />
         <meta property="og:type" content="website" />
       </Head>
-      <main className="w-full flex flex-row justify-center h-[calc(100vh)]">
-        {!isLibraryLoading && !isFallbackLoading && !isLoadingBackblaze ? (
-          <PanelGroup direction="horizontal" className="w-full">
-            <Panel defaultSize={50} minSize={50}>
-              <PDFViewer
-                url={`/api/pdf-proxy?url=${encodeURIComponent(pdfURL)}`}
-              />
-            </Panel>
-            <ResizeHandle />
-            <Panel defaultSize={50} minSize={25}>
-              <Notes serverNotes={notes} uuid={uuid} />
-            </Panel>
-          </PanelGroup>
-        ) : (
-          <div className="self-center">Fetching data...</div>
-        )}
-      </main>
+      <div className="w-full flex flex-col h-screen">
+        <main className="flex-1 flex flex-row justify-center overflow-hidden">
+          {!isLibraryLoading && !isFallbackLoading && !isLoadingBackblaze ? (
+            <PanelGroup direction="horizontal" className="w-full">
+              <Panel defaultSize={50} minSize={50}>
+                <PDFViewer
+                  url={`/api/pdf-proxy?url=${encodeURIComponent(pdfURL)}`}
+                />
+              </Panel>
+              <ResizeHandle />
+              <Panel defaultSize={50} minSize={25}>
+                <Notes serverNotes={notes} uuid={uuid} />
+              </Panel>
+            </PanelGroup>
+          ) : (
+            <div className="self-center">Fetching data...</div>
+          )}
+        </main>
+        
+        {/* Comments Section */}
+        <div className="border-t border-border bg-background">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-purple" />
+                <h3 className="font-semibold">Comments</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowComments(!showComments)}
+                className="flex items-center gap-2"
+              >
+                {showComments ? (
+                  <>
+                    <ChevronDown className="w-4 h-4" />
+                    Hide Comments
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    Show Comments
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {showComments && (
+              <div className="pb-6 max-h-96 overflow-y-auto">
+                <CommentList library_id={uuid} showTitle={false} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

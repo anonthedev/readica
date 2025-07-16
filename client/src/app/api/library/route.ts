@@ -14,9 +14,9 @@ export async function GET(req: NextRequest) {
     const userId = req.nextUrl.searchParams.get("userId");
     const authHeader = req.headers.get("Authorization");
 
-    if (!userId || !authHeader) {
+    if (!authHeader) {
       return NextResponse.json(
-        { message: "Missing userId or token" },
+        { message: "Missing authorization token" },
         { status: 400 }
       );
     }
@@ -25,6 +25,14 @@ export async function GET(req: NextRequest) {
     const supabase = supabaseClient(token);
 
     if (paper_uuid) {
+      // For specific paper lookup, userId is still required
+      if (!userId) {
+        return NextResponse.json(
+          { message: "Missing userId for specific paper lookup" },
+          { status: 400 }
+        );
+      }
+
       const { data: library, error } = await supabase
         .from("library")
         .select("*")
@@ -52,11 +60,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(library, { status: 200 });
     }
 
-    const { data: library, error } = await supabase
+    // For general library fetch
+    let query = supabase
       .from("library")
       .select("*")
-      .eq("user_id", userId)
       .order("upload_date", { ascending: false });
+
+    // If userId is provided, filter by user_id, otherwise return all papers
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data: library, error } = await query;
 
     if (error) {
       return NextResponse.json(

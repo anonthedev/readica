@@ -24,3 +24,45 @@ export interface LibraryItemType {
   file_id?: string;
   tags?: string[];
 }
+
+// Profile type for public user information
+export interface ProfileType {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  image_url: string | null;
+  bio: string | null;
+}
+
+// Comment-related types
+export interface CommentType {
+  id: string;
+  created_at: string;
+  updated_at?: string;
+  user_id: string;
+  library_id: string;
+  text: string;
+  parent_id?: string;
+  // Related profile data (public information)
+  profile?: {
+    username: string | null;
+    display_name: string | null;
+    image_url: string | null;
+  };
+  replies?: CommentType[];
+  totalReplies?: number;
+}
+
+export interface CreateCommentData {
+  text: string;
+  library_id: string;
+  parent_id?: string;
+}
+
+export interface UpdateCommentData {
+  text: string;
+}
+
+export interface CommentWithReplies extends CommentType {
+  replies: CommentType[];
+}

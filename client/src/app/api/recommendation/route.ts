@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
   //   const lastTimestamp = userData.last_recommendation_timestamp ? new Date(userData.last_recommendation_timestamp) : null;
   //   const now = new Date();
 
-  //   // Reset count if the last request was on a different day (UTC)
   //   if (lastTimestamp && lastTimestamp.getUTCDate() !== now.getUTCDate()) {
   //     currentCount = 0;
   //   }
@@ -61,7 +60,7 @@ export async function POST(req: NextRequest) {
   // }
 
   const { messages } = await req.json();
-  const exa = new Exa("a5c2c4ef-5832-4299-8bbe-372279bf3164");
+  const exa = new Exa(process.env.EXA_API_KEY as string);
 
   const researchTool = tool({
     description: "Search the web for research papers",
