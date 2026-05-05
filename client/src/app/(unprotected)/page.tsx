@@ -2,14 +2,24 @@ import type { Metadata } from "next";
 import Home from "@/components/Home";
 
 export const metadata: Metadata = {
-  title: 'Home | Readica', 
-  description: 'Readica: Your personal academic paper library and reader. Organize, discover, and read research papers online.',
-  keywords: ['Readica', 'academic papers', 'research library', 'PDF reader', 'paper organizer', 'discover papers', 'online reader'],
-  authors: [{ name: 'anonthedev' }],
+  title: "Readica | Research Papers, Organized",
+  description:
+    "Readica helps students and researchers organize academic PDFs, discover related papers, read with context, and keep notes close to the source.",
+  keywords: [
+    "Readica",
+    "academic papers",
+    "research library",
+    "PDF reader",
+    "paper organizer",
+    "research notes",
+    "paper discovery",
+  ],
+  authors: [{ name: "anonthedev" }],
   openGraph: {
-    title: 'Home | Readica',
-    description: 'Readica is your platform to organize, discover, and read academic research papers online.',
-    type: 'website',
+    title: "Readica | Research Papers, Organized",
+    description:
+      "Turn scattered research PDFs into a working reading system with library organization, paper discovery, and notes.",
+    type: "website",
   },
 };
 
